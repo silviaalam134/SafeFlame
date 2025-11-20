@@ -1,0 +1,69 @@
+/* Dashboard.css
+   Layout and styles for the Dashboard page.
+*/
+
+.dashboard {
+  max-width: 980px;
+  margin: 28px auto;
+  padding: 0 16px;
+}
+
+.dashboard__header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+
+.dashboard__title {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.dashboard__subtitle {
+  margin: 0;
+  color: rgba(0,0,0,0.6);
+  font-size: 0.95rem;
+}
+
+.dashboard__content {
+  margin-top: 12px;
+}
+
+.dashboard__status {
+  padding: 12px;
+  border-radius: 8px;
+  background: #fff8e1;
+  color: #665200;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.dashboard__status--error {
+  background: #ffebee;
+  color: #a62828;
+}
+
+/* Alert list layout */
+.dashboard__list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+/* When there's room, show two columns */
+@media (min-width: 720px) {
+  .dashboard__list {
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+}
+.dashboard__empty {
+  padding: 16px;
+  border-radius: 8px;
+  background: #f3f4f6;
+  color: #444;
+  text-align: center;
+}
