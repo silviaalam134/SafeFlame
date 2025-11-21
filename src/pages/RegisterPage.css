@@ -1,0 +1,66 @@
+.register-container {
+  max-width: 400px;
+  margin: 60px auto;
+  padding: 32px;
+  background: #fff0f0;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+}
+
+.register-container h1 {
+  color: #d32f2f;
+  margin-bottom: 20px;
+}
+
+.register-error {
+  background: #ffebee;
+  color: #a62828;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.register-success {
+  background: #e8f5e9;
+  color: #2e7d32;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.register-form input {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 16px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+}
+
+.register-form button {
+  width: 100%;
+  padding: 12px;
+  background-color: #d32f2f;
+  color: white;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.register-form button:hover {
+  background-color: #b71c1c;
+}
+
+.register-link {
+  color: #d32f2f;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.register-link:hover {
+  text-decoration: underline;
+}

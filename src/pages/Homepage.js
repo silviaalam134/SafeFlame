@@ -30,6 +30,7 @@ const Homepage = () => {
 
   return (
     <div className="homepage">
+      {/* Header/Navbar */}
       <header className="homepage__header">
         <div className="homepage__logo">SafeFlame</div>
         <nav className="homepage__nav">
@@ -38,6 +39,21 @@ const Homepage = () => {
           <a href="#stats">Statistics</a>
           <a href="#about">About</a>
           <a href="#contact">Contact</a>
+          {/* Login Button */}
+          <Link
+            to="/login"
+            style={{
+              marginLeft: '24px',
+              padding: '8px 16px',
+              backgroundColor: '#d32f2f', // red background
+              color: 'white',              // white text
+              borderRadius: '6px',
+              textDecoration: 'none',
+              fontWeight: '600',
+            }}
+          >
+            Login
+          </Link>
         </nav>
       </header>
 
@@ -62,11 +78,13 @@ const Homepage = () => {
         </Link>
       </section>
 
+      {/* Alerts Section */}
       <section className="homepage__alerts" id="alerts">
         <h2>Live Fire Alerts</h2>
         <Dashboard />
       </section>
 
+      {/* Statistics Section */}
       <section className="homepage__stats" id="stats">
         <h2>Alert Statistics</h2>
         <div className="homepage__stats-grid">
@@ -85,11 +103,16 @@ const Homepage = () => {
         </div>
       </section>
 
+      {/* About Section */}
       <section className="homepage__about" id="about">
         <h2>About SafeFlame</h2>
-        <p>SafeFlame helps you monitor fire hazards instantly with live alerts and updates. Stay safe, stay informed!</p>
+        <p>
+          SafeFlame helps you monitor fire hazards instantly with live alerts and updates.
+          Stay safe, stay informed!
+        </p>
       </section>
 
+      {/* Contact Section */}
       <section className="homepage__contact" id="contact">
         <h2>Contact Us</h2>
         <p>Email: support@safeflame.com | Phone: +880 123 456 789</p>
@@ -100,6 +123,7 @@ const Homepage = () => {
         </div>
       </section>
 
+      {/* Footer */}
       <footer className="homepage__footer">
         &copy; {new Date().getFullYear()} SafeFlame. All rights reserved.
       </footer>
