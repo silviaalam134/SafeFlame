@@ -13,7 +13,7 @@ const Homepage = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const res = await fetch('http://localhost:5000/alerts');
+       const res = await fetch('http://localhost:5000/api/alerts/stats');
         const data = await res.json();
         if (Array.isArray(data)) {
           const total = data.length;

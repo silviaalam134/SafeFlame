@@ -18,6 +18,7 @@ const LoginPage = () => {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message);
       localStorage.setItem('token', data.token);
+      localStorage.setItem('userName', data.user.name); 
       alert('Login successful');
       navigate('/');
     } catch (err) {

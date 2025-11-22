@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import AlertCard from '../components/AlertCard';
 import './Dashboard.css';
 
-const API_URL = 'http://localhost:5000/alerts';
+const API_URL = 'http://localhost:5000/api/alerts';
 
 const Dashboard = () => {
   const [alerts, setAlerts] = useState([]);

@@ -8,6 +8,31 @@ const FireDetection = () => {
   const [stream, setStream] = useState(null);
   const [alerts, setAlerts] = useState([]);
 
+  // Save alert to backend when fire is detected
+  const saveAlertToBackend = async () => {
+  try {
+    // Get user name from localStorage or use default
+    const userName = localStorage.getItem('userName') || 'SafeFlame User';
+    
+    const response = await fetch('http://localhost:5000/api/alerts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'Fire Detected',
+        status: 'unread',
+        location: 'Live Camera Feed',
+        severity: 'critical',
+        detectedBy: userName  // ✅ User এর name আসবে
+      })
+    });
+    
+    if (response.ok) {
+      console.log('✅ Alert saved to database with user name');
+    }
+  } catch (err) {
+    console.error('Failed to save alert to backend:', err);
+  }
+};
   // Initialize camera
   const initCamera = async () => {
     if (navigator.mediaDevices?.getUserMedia) {
@@ -30,7 +55,7 @@ const FireDetection = () => {
   
   const checkForFire = () => {
     const video = videoRef.current;
-    if (!video || video.videoWidth === 0 || video.videoHeight === 0) return; // <-- safety check
+    if (!video || video.videoWidth === 0 || video.videoHeight === 0) return;
 
     const canvas = canvasRef.current;
     canvas.width = video.videoWidth;
@@ -52,6 +77,11 @@ const FireDetection = () => {
       if (!alarmOn) { // trigger only once per detection
         setAlarmOn(true);
         if (!muted && alarmRef.current) alarmRef.current.play();
+        
+        // ✅ Save to backend database
+        saveAlertToBackend();
+        
+        // Update local state
         setAlerts(prev => [
           ...prev,
           { timestamp: new Date(), status: 'unread', type: 'Fire Detected' },
