@@ -29,6 +29,7 @@ const RegisterPage = () => {
       }
 
       // Success
+      localStorage.setItem('userName', data.user.name);
       alert('Registered successfully!');
       navigate('/login');
     } catch (err) {

@@ -49,11 +49,21 @@ try {
   console.log('❌ Failed to load auth routes:', error.message);
 }
 
+// ✅ ADD ALERT ROUTES HERE
+try {
+  const alertRoutes = require('./routes/alerts');
+  app.use('/api/alerts', alertRoutes);
+  console.log('✅ Alert routes loaded successfully');
+} catch (error) {
+  console.log('❌ Failed to load alert routes:', error.message);
+}
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🔥 Server running on port ${PORT}`);
   console.log(`📍 Test URLs:`);
   console.log(`   http://localhost:${PORT}/api/test`);
   console.log(`   http://localhost:${PORT}/api/auth/test`);
-  console.log(`   http://localhost:${PORT}/api/auth/db-status`);
+  console.log(`   http://localhost:${PORT}/api/alerts`);
+  console.log(`   http://localhost:${PORT}/api/alerts/stats`);
 });
