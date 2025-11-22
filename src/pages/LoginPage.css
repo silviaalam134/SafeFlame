@@ -1,38 +1,58 @@
-.login-container {
-  max-width: 400px;
-  margin: 60px auto;
-  padding: 32px;
-  background: #fff0f0;
+/* Center the card */
+.login-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f44336, #ff7961);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Card styling */
+.login-card {
+  background: #fff;
+  padding: 40px 30px;
   border-radius: 12px;
-  text-align: center;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial;
-}
-
-.login-container h1 {
-  color: #d32f2f;
-  margin-bottom: 20px;
-}
-
-.login-error {
-  background: #ffebee;
-  color: #a62828;
-  padding: 10px;
-  border-radius: 8px;
-  margin-bottom: 16px;
-}
-
-.login-form input {
-  display: block;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
   width: 100%;
-  padding: 12px;
-  margin-bottom: 16px;
+  max-width: 400px;
+  text-align: center;
+  transition: transform 0.2s ease;
+}
+
+.login-card:hover {
+  transform: translateY(-5px);
+}
+
+.login-card h2 {
+  margin-bottom: 10px;
+  color: #d32f2f;
+}
+
+.login-subtitle {
+  margin-bottom: 25px;
+  color: #555;
+  font-size: 0.95rem;
+}
+
+/* Input styling */
+.login-card input {
+  width: 100%;
+  padding: 12px 15px;
+  margin-bottom: 18px;
   border-radius: 8px;
   border: 1px solid #ccc;
   font-size: 1rem;
+  transition: border-color 0.2s ease;
 }
 
-.login-form button {
+.login-card input:focus {
+  border-color: #d32f2f;
+  outline: none;
+}
+
+/* Button styling */
+.login-card button {
   width: 100%;
   padding: 12px;
   background-color: #d32f2f;
@@ -41,18 +61,33 @@
   border: none;
   border-radius: 8px;
   cursor: pointer;
+  transition: background 0.2s ease;
 }
 
-.login-form button:hover {
+.login-card button:hover {
   background-color: #b71c1c;
 }
 
-.login-link {
+/* Footer */
+.login-footer {
+  margin-top: 15px;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.login-footer a {
   color: #d32f2f;
   font-weight: 600;
   text-decoration: none;
 }
 
-.login-link:hover {
+.login-footer a:hover {
   text-decoration: underline;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .login-card {
+    padding: 30px 20px;
+  }
 }
