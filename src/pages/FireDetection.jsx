@@ -1,6 +1,8 @@
 import React, { useRef, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const FireDetection = () => {
+  const navigate = useNavigate();
   const videoRef = useRef(null);
   const alarmRef = useRef(null);
   const [alarmOn, setAlarmOn] = useState(false);
@@ -8,32 +10,26 @@ const FireDetection = () => {
   const [stream, setStream] = useState(null);
   const [alerts, setAlerts] = useState([]);
 
-  // Save alert to backend when fire is detected
   const saveAlertToBackend = async () => {
-  try {
-    // Get user name from localStorage or use default
-    const userName = localStorage.getItem('userName') || 'SafeFlame User';
-    
-    const response = await fetch('http://localhost:5000/api/alerts', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        type: 'Fire Detected',
-        status: 'unread',
-        location: 'Live Camera Feed',
-        severity: 'critical',
-        detectedBy: userName  // ✅ User এর name আসবে
-      })
-    });
-    
-    if (response.ok) {
-      console.log('✅ Alert saved to database with user name');
+    try {
+      const userName = localStorage.getItem('userName') || 'SafeFlame User';
+      const response = await fetch('http://localhost:5000/api/alerts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'Fire Detected',
+          status: 'unread',
+          location: 'Live Camera Feed',
+          severity: 'critical',
+          detectedBy: userName
+        })
+      });
+      if (response.ok) console.log('✅ Alert saved');
+    } catch (err) {
+      console.error('Failed to save alert:', err);
     }
-  } catch (err) {
-    console.error('Failed to save alert to backend:', err);
-  }
-};
-  // Initialize camera
+  };
+
   const initCamera = async () => {
     if (navigator.mediaDevices?.getUserMedia) {
       try {
@@ -50,9 +46,8 @@ const FireDetection = () => {
     initCamera();
   }, []);
 
-  // Canvas for analyzing video frames
   const canvasRef = useRef(document.createElement('canvas'));
-  
+
   const checkForFire = () => {
     const video = videoRef.current;
     if (!video || video.videoWidth === 0 || video.videoHeight === 0) return;
@@ -69,19 +64,14 @@ const FireDetection = () => {
       const r = frame.data[i];
       const g = frame.data[i + 1];
       const b = frame.data[i + 2];
-
       if (r > 150 && g < 100 && b < 100) redPixels++;
     }
 
-    if (redPixels > 5000) { // threshold for detecting fire
-      if (!alarmOn) { // trigger only once per detection
+    if (redPixels > 5000) {
+      if (!alarmOn) {
         setAlarmOn(true);
         if (!muted && alarmRef.current) alarmRef.current.play();
-        
-        // ✅ Save to backend database
         saveAlertToBackend();
-        
-        // Update local state
         setAlerts(prev => [
           ...prev,
           { timestamp: new Date(), status: 'unread', type: 'Fire Detected' },
@@ -93,11 +83,10 @@ const FireDetection = () => {
   };
 
   useEffect(() => {
-    const interval = setInterval(checkForFire, 500); // check twice per second
+    const interval = setInterval(checkForFire, 500);
     return () => clearInterval(interval);
   });
 
-  // Disconnect camera
   const disconnectCamera = () => {
     if (stream) {
       stream.getTracks().forEach(track => track.stop());
@@ -107,14 +96,10 @@ const FireDetection = () => {
     }
   };
 
-  // Reconnect camera
   const reconnectCamera = () => {
-    if (!stream) {
-      initCamera();
-    }
+    if (!stream) initCamera();
   };
 
-  // Toggle alert read/unread
   const toggleRead = index => {
     setAlerts(prev =>
       prev.map((alert, i) =>
@@ -125,35 +110,49 @@ const FireDetection = () => {
 
   return (
     <div style={{ textAlign: 'center', padding: '20px' }}>
-      <h1>Fire Detection</h1>
+      <h1 style={{ fontSize: '1.8rem', marginBottom: '10px' }}>Fire Detection</h1>
       <video
         ref={videoRef}
-        width="640"
-        height="480"
         autoPlay
-        style={{ border: '2px solid #d32f2f', borderRadius: '8px', marginTop: '20px' }}
+        style={{
+          width: '100%',
+          maxWidth: '640px',
+          height: 'auto',
+          border: '2px solid #d32f2f',
+          borderRadius: '8px',
+          marginTop: '20px'
+        }}
       />
 
       <audio ref={alarmRef} src={`${process.env.PUBLIC_URL}/alarm.mp3`} />
 
       {alarmOn && (
-        <div style={{ marginTop: '20px', color: '#d32f2f', fontWeight: '700', fontSize: '1.5rem' }}>
+        <div style={{
+          marginTop: '20px',
+          color: '#d32f2f',
+          fontWeight: '700',
+          fontSize: '1.5rem'
+        }}>
           🔥 Fire Detected! 🔥
         </div>
       )}
 
-      <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'center', gap: '10px' }}>
+      <div style={{
+        marginTop: '20px',
+        display: 'flex',
+        justifyContent: 'center',
+        gap: '10px',
+        flexWrap: 'wrap'
+      }}>
         <button
           onClick={() => {
             setMuted(!muted);
             if (!muted) {
-              // If muting now, stop alarm immediately
               if (alarmRef.current) {
                 alarmRef.current.pause();
                 alarmRef.current.currentTime = 0;
               }
             } else {
-              // If unmuting, play alarm immediately if fire is detected
               if (alarmOn && alarmRef.current) alarmRef.current.play();
             }
           }}
@@ -201,25 +200,30 @@ const FireDetection = () => {
         </button>
       </div>
 
-      <div style={{ marginTop: '30px', textAlign: 'left', maxWidth: '640px', marginLeft: 'auto', marginRight: 'auto' }}>
+      <div style={{
+        marginTop: '30px',
+        textAlign: 'left',
+        maxWidth: '100%',
+        width: '640px',
+        marginLeft: 'auto',
+        marginRight: 'auto'
+      }}>
         <h2>Live Fire Alerts ({alerts.length})</h2>
         <ul style={{ listStyle: 'none', padding: 0 }}>
           {alerts.map((alert, index) => (
-            <li
-              key={index}
-              style={{
-                padding: '8px',
-                borderBottom: '1px solid #ccc',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                backgroundColor: alert.status === 'unread' ? '#fff5f5' : '#f2fff6',
-                borderLeft: alert.status === 'unread' ? '6px solid #d32f2f' : '6px solid #2e7d32',
-                borderRadius: '4px',
-                marginBottom: '6px',
-              }}
-            >
-              <span>
+            <li key={index} style={{
+              padding: '8px',
+              borderBottom: '1px solid #ccc',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              backgroundColor: alert.status === 'unread' ? '#fff5f5' : '#f2fff6',
+              borderLeft: alert.status === 'unread' ? '6px solid #d32f2f' : '6px solid #2e7d32',
+              borderRadius: '4px',
+              marginBottom: '6px',
+              flexWrap: 'wrap'
+            }}>
+              <span style={{ fontSize: '0.9rem', marginBottom: '4px' }}>
                 {alert.type} at {alert.timestamp.toLocaleTimeString()}
               </span>
               <button
@@ -232,6 +236,7 @@ const FireDetection = () => {
                   color: 'white',
                   cursor: 'pointer',
                   fontWeight: '600',
+                  marginLeft: '10px'
                 }}
               >
                 Mark as {alert.status === 'unread' ? 'Read' : 'Unread'}
@@ -240,6 +245,23 @@ const FireDetection = () => {
           ))}
         </ul>
       </div>
+
+      {/* Back to Home button */}
+      <button
+        onClick={() => navigate('/')}
+        style={{
+          marginTop: '30px',
+          padding: '10px 20px',
+          borderRadius: '8px',
+          border: 'none',
+          backgroundColor: '#777',
+          color: 'white',
+          fontWeight: '600',
+          cursor: 'pointer',
+        }}
+      >
+         Back to Home
+      </button>
     </div>
   );
 };

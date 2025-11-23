@@ -75,18 +75,9 @@ const RegisterPage = () => {
       {/* Back to Home button */}
       <button
         onClick={() => navigate('/')}
-        style={{
-          marginTop: '15px',
-          padding: '8px 16px',
-          borderRadius: '8px',
-          border: 'none',
-          backgroundColor: '#777',
-          color: 'white',
-          cursor: 'pointer',
-          fontWeight: '600',
-        }}
+        className="back-home-btn"
       >
-        ← Back to Home
+        Back to Home
       </button>
     </div>
   );
