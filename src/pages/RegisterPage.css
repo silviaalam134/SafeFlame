@@ -1,19 +1,28 @@
+/* Set page background and global font */
+body {
+  background-color: #f5f0ea; /* off-white / light brown */
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+}
+
+/* Container styling */
 .register-container {
   max-width: 400px;
   margin: 60px auto;
   padding: 32px;
-  background: #fff0f0;
+  background: #ffffff; /* off-white / light brown */
   border-radius: 12px;
   text-align: center;
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial;
 }
 
+/* Heading */
 .register-container h1 {
-  color: #d32f2f;
+  color: #800000; /* maroon */
   margin-bottom: 20px;
 }
 
+/* Error and success messages */
 .register-error {
   background: #ffebee;
   color: #a62828;
@@ -30,6 +39,7 @@
   margin-bottom: 16px;
 }
 
+/* Form inputs */
 .register-form input {
   display: block;
   width: 100%;
@@ -40,23 +50,26 @@
   font-size: 1rem;
 }
 
+/* Buttons */
 .register-form button {
   width: 100%;
   padding: 12px;
-  background-color: #d32f2f;
+  background-color: #800000; /* maroon */
   color: white;
   font-weight: 600;
   border: none;
   border-radius: 8px;
   cursor: pointer;
+  transition: background 0.2s ease;
 }
 
 .register-form button:hover {
-  background-color: #b71c1c;
+  background-color: #660000; /* darker maroon */
 }
 
+/* Links */
 .register-link {
-  color: #d32f2f;
+  color: #800000; /* maroon */
   font-weight: 600;
   text-decoration: none;
 }

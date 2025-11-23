@@ -28,7 +28,6 @@ const RegisterPage = () => {
         throw new Error(data.message || 'Registration failed');
       }
 
-      // Success
       localStorage.setItem('userName', data.user.name);
       alert('Registered successfully!');
       navigate('/login');
@@ -72,6 +71,23 @@ const RegisterPage = () => {
       <p>
         Already have an account? <a href="/login" className="register-link">Login</a>
       </p>
+
+      {/* Back to Home button */}
+      <button
+        onClick={() => navigate('/')}
+        style={{
+          marginTop: '15px',
+          padding: '8px 16px',
+          borderRadius: '8px',
+          border: 'none',
+          backgroundColor: '#777',
+          color: 'white',
+          cursor: 'pointer',
+          fontWeight: '600',
+        }}
+      >
+        ← Back to Home
+      </button>
     </div>
   );
 };

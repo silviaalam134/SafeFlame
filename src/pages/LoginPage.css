@@ -4,13 +4,13 @@
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background: linear-gradient(135deg, #f44336, #ff7961);
+  background: #f5f0ea; /* soft off-white / brownish background */
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 /* Card styling */
 .login-card {
-  background: #fff;
+  background: #ffffff; /* white card */
   padding: 40px 30px;
   border-radius: 12px;
   box-shadow: 0 10px 25px rgba(0,0,0,0.2);
@@ -26,7 +26,7 @@
 
 .login-card h2 {
   margin-bottom: 10px;
-  color: #d32f2f;
+  color: #800000; /* maroon */
 }
 
 .login-subtitle {
@@ -47,7 +47,7 @@
 }
 
 .login-card input:focus {
-  border-color: #d32f2f;
+  border-color: #800000;
   outline: none;
 }
 
@@ -55,7 +55,7 @@
 .login-card button {
   width: 100%;
   padding: 12px;
-  background-color: #d32f2f;
+  background-color: #800000; /* maroon */
   color: white;
   font-weight: 600;
   border: none;
@@ -65,7 +65,7 @@
 }
 
 .login-card button:hover {
-  background-color: #b71c1c;
+  background-color: #660000; /* darker maroon */
 }
 
 /* Footer */
@@ -76,7 +76,7 @@
 }
 
 .login-footer a {
-  color: #d32f2f;
+  color: #800000;
   font-weight: 600;
   text-decoration: none;
 }
@@ -90,4 +90,22 @@
   .login-card {
     padding: 30px 20px;
   }
+}
+
+/* Back to Home button */
+.back-home-btn {
+  width: 100%;
+  padding: 12px;
+  margin-top: 12px;
+  border-radius: 8px;
+  border: none;
+  background-color: #a00000; /* maroon variant */
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.back-home-btn:hover {
+  background-color: #800000;
 }
