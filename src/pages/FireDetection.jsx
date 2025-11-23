@@ -1,4 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
+import * as tf from '@tensorflow/tfjs';
+import * as cocossd from '@tensorflow-models/coco-ssd';
 
 const FireDetection = () => {
   const videoRef = useRef(null);
@@ -7,37 +9,39 @@ const FireDetection = () => {
   const [muted, setMuted] = useState(false);
   const [stream, setStream] = useState(null);
   const [alerts, setAlerts] = useState([]);
+  const [model, setModel] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [detections, setDetections] = useState([]);
+  const [firePixelsCount, setFirePixelsCount] = useState(0);
 
-  // Save alert to backend when fire is detected
-  const saveAlertToBackend = async () => {
-  try {
-    // Get user name from localStorage or use default
-    const userName = localStorage.getItem('userName') || 'SafeFlame User';
-    
-    const response = await fetch('http://localhost:5000/api/alerts', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        type: 'Fire Detected',
-        status: 'unread',
-        location: 'Live Camera Feed',
-        severity: 'critical',
-        detectedBy: userName  // ✅ User এর name আসবে
-      })
-    });
-    
-    if (response.ok) {
-      console.log('✅ Alert saved to database with user name');
-    }
-  } catch (err) {
-    console.error('Failed to save alert to backend:', err);
-  }
-};
+  // Canvas for color-based detection
+  const canvasRef = useRef(document.createElement('canvas'));
+
+  // Load TensorFlow.js model
+  useEffect(() => {
+    const loadModel = async () => {
+      try {
+        console.log('🔄 Loading AI Model...');
+        await tf.ready();
+        const loadedModel = await cocossd.load();
+        setModel(loadedModel);
+        setLoading(false);
+        console.log('✅ AI Model Loaded Successfully');
+      } catch (error) {
+        console.error('❌ Model loading failed:', error);
+        setLoading(false);
+      }
+    };
+    loadModel();
+  }, []);
+
   // Initialize camera
   const initCamera = async () => {
     if (navigator.mediaDevices?.getUserMedia) {
       try {
-        const s = await navigator.mediaDevices.getUserMedia({ video: true });
+        const s = await navigator.mediaDevices.getUserMedia({ 
+          video: { width: 640, height: 480 } 
+        });
         setStream(s);
         if (videoRef.current) videoRef.current.srcObject = s;
       } catch (err) {
@@ -50,52 +54,168 @@ const FireDetection = () => {
     initCamera();
   }, []);
 
-  // Canvas for analyzing video frames
-  const canvasRef = useRef(document.createElement('canvas'));
-  
-  const checkForFire = () => {
+  // ✅ ADDED: Color-based Fire Detection (Candle-এর জন্য)
+  const checkForFireWithColor = () => {
     const video = videoRef.current;
     if (!video || video.videoWidth === 0 || video.videoHeight === 0) return;
 
     const canvas = canvasRef.current;
+    const context = canvas.getContext('2d');
+    
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
-    const context = canvas.getContext('2d');
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    
     const frame = context.getImageData(0, 0, canvas.width, canvas.height);
+    let firePixels = 0;
 
-    let redPixels = 0;
     for (let i = 0; i < frame.data.length; i += 4) {
       const r = frame.data[i];
       const g = frame.data[i + 1];
       const b = frame.data[i + 2];
 
-      if (r > 150 && g < 100 && b < 100) redPixels++;
+      // Advanced Candle Flame Detection
+      const isCandleFlame = (
+        r > 180 &&           // High red
+        g < 120 &&           // Low green  
+        b < 100 &&           // Very low blue
+        (r - g) > 80 &&      // Red significantly higher than green
+        (r - b) > 100 &&     // Red much higher than blue
+        r > (g + b)          // Red dominates
+      );
+
+      if (isCandleFlame) {
+        firePixels++;
+      }
     }
 
-    if (redPixels > 5000) { // threshold for detecting fire
-      if (!alarmOn) { // trigger only once per detection
-        setAlarmOn(true);
-        if (!muted && alarmRef.current) alarmRef.current.play();
-        
-        // ✅ Save to backend database
-        saveAlertToBackend();
-        
-        // Update local state
-        setAlerts(prev => [
-          ...prev,
-          { timestamp: new Date(), status: 'unread', type: 'Fire Detected' },
-        ]);
+    setFirePixelsCount(firePixels);
+
+    // ✅ Dual Threshold System
+    if (firePixels > 50 && !alarmOn) {   // Candle detection (50 pixels)
+      setAlarmOn(true);
+      if (!muted && alarmRef.current) {
+        alarmRef.current.play().catch(e => console.log('Audio play failed:', e));
       }
-    } else {
+      
+      saveAlertToBackend('Candle Flame (Color Detection)', firePixels / 100);
+      
+      setAlerts(prev => [
+        ...prev,
+        { 
+          timestamp: new Date(), 
+          status: 'unread', 
+          type: '🕯️ Candle Flame Detected',
+          confidence: Math.min(Math.round((firePixels / 200) * 100), 95)
+        },
+      ]);
+      
+      console.log('🎯 Candle Detected! Fire Pixels:', firePixels);
+    } 
+    else if (firePixels > 3000 && !alarmOn) {  // Large fire detection (3000 pixels)
+      setAlarmOn(true);
+      if (!muted && alarmRef.current) {
+        alarmRef.current.play().catch(e => console.log('Audio play failed:', e));
+      }
+      
+      saveAlertToBackend('Large Fire (Color Detection)', firePixels / 5000);
+      
+      setAlerts(prev => [
+        ...prev,
+        { 
+          timestamp: new Date(), 
+          status: 'unread', 
+          type: '🔥 Large Fire Detected',
+          confidence: Math.min(Math.round((firePixels / 5000) * 100), 99)
+        },
+      ]);
+      
+      console.log('🚨 Large Fire Detected! Fire Pixels:', firePixels);
+    }
+    else if (firePixels < 30) {
       setAlarmOn(false);
     }
   };
 
+  // AI-powered Fire Detection
+  const checkForFireWithAI = async () => {
+    if (!model || !videoRef.current || videoRef.current.readyState !== 4) return;
+
+    try {
+      const predictions = await model.detect(videoRef.current);
+      setDetections(predictions);
+      
+      // Check for fire-related objects
+      const fireObjects = predictions.filter(pred => {
+        const className = pred.class.toLowerCase();
+        return (
+          className.includes('fire') ||
+          className.includes('orange') ||
+          className.includes('red') ||
+          className.includes('bright') ||
+          (pred.class === 'teddy bear' && pred.score > 0.8) // Test object
+        );
+      });
+
+      if (fireObjects.length > 0 && !alarmOn) {
+        const bestDetection = fireObjects[0];
+        setAlarmOn(true);
+        if (!muted && alarmRef.current) {
+          alarmRef.current.play().catch(e => console.log('Audio play failed:', e));
+        }
+        
+        // Save to backend
+        saveAlertToBackend(bestDetection.class, bestDetection.score);
+        
+        // Update local alerts
+        setAlerts(prev => [
+          ...prev,
+          { 
+            timestamp: new Date(), 
+            status: 'unread', 
+            type: `AI Detected: ${bestDetection.class}`,
+            confidence: Math.round(bestDetection.score * 100)
+          },
+        ]);
+      }
+    } catch (error) {
+      console.error('AI Detection error:', error);
+    }
+  };
+
+  // Real-time detection - Both AI and Color
   useEffect(() => {
-    const interval = setInterval(checkForFire, 500); // check twice per second
+    if (loading) return;
+
+    const interval = setInterval(() => {
+      checkForFireWithAI();    // AI Detection
+      checkForFireWithColor(); // ✅ Color Detection - ADDED
+    }, 1000);
+
     return () => clearInterval(interval);
-  });
+  }, [model, loading]);
+
+  // Save alert to backend
+  const saveAlertToBackend = async (detectedObject, confidence) => {
+    try {
+      const userName = localStorage.getItem('userName') || 'SafeFlame User';
+      await fetch('http://localhost:5000/api/alerts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: `Detection: ${detectedObject}`,
+          status: 'unread',
+          location: 'Live Camera Feed',
+          severity: 'critical',
+          detectedBy: userName,
+          confidence: Math.round(confidence * 100)
+        })
+      });
+      console.log('✅ Alert saved to database');
+    } catch (err) {
+      console.error('Failed to save alert:', err);
+    }
+  };
 
   // Disconnect camera
   const disconnectCamera = () => {
@@ -114,47 +234,83 @@ const FireDetection = () => {
     }
   };
 
-  // Toggle alert read/unread
-  const toggleRead = index => {
-    setAlerts(prev =>
-      prev.map((alert, i) =>
-        i === index ? { ...alert, status: alert.status === 'unread' ? 'read' : 'unread' } : alert
-      )
-    );
-  };
-
   return (
     <div style={{ textAlign: 'center', padding: '20px' }}>
-      <h1>Fire Detection</h1>
-      <video
-        ref={videoRef}
-        width="640"
-        height="480"
-        autoPlay
-        style={{ border: '2px solid #d32f2f', borderRadius: '8px', marginTop: '20px' }}
-      />
+      <h1>Fire Detection with AI & Color Analysis</h1>
+      
+      {loading && (
+        <div style={{margin: '20px', color: '#d32f2f', fontSize: '1.2rem'}}>
+          🔄 Loading AI Model... Please wait
+        </div>
+      )}
 
-      <audio ref={alarmRef} src={`${process.env.PUBLIC_URL}/alarm.mp3`} />
+      <div style={{position: 'relative', display: 'inline-block'}}>
+        <video
+          ref={videoRef}
+          width="640"
+          height="480"
+          autoPlay
+          muted
+          style={{ border: '2px solid #d32f2f', borderRadius: '8px', marginTop: '20px' }}
+        />
+        
+        {/* AI Detections Display */}
+        {detections.map((detection, index) => (
+          <div key={index} style={{
+            position: 'absolute',
+            left: detection.bbox[0],
+            top: detection.bbox[1],
+            width: detection.bbox[2],
+            height: detection.bbox[3],
+            border: '2px solid #ff0000',
+            backgroundColor: 'rgba(255,0,0,0.1)',
+            color: 'white',
+            fontSize: '12px',
+            fontWeight: 'bold'
+          }}>
+            {detection.class} ({Math.round(detection.score * 100)}%)
+          </div>
+        ))}
+      </div>
+
+      <audio ref={alarmRef} src={`${process.env.PUBLIC_URL}/alarm.mp3`} loop />
+
+      {/* Fire Detection Status */}
+      <div style={{ marginTop: '15px', padding: '10px', backgroundColor: '#f5f5f5', borderRadius: '8px' }}>
+        <div style={{ fontSize: '0.9rem', color: '#666' }}>
+          🔍 Fire Pixels: <strong>{firePixelsCount}</strong> | 
+          Thresholds: <strong>50</strong> (Candle) / <strong>3000</strong> (Large Fire)
+        </div>
+      </div>
 
       {alarmOn && (
-        <div style={{ marginTop: '20px', color: '#d32f2f', fontWeight: '700', fontSize: '1.5rem' }}>
+        <div style={{ 
+          marginTop: '20px', 
+          color: '#d32f2f', 
+          fontWeight: '700', 
+          fontSize: '1.5rem',
+          padding: '10px',
+          backgroundColor: '#fff5f5',
+          borderRadius: '8px'
+        }}>
           🔥 Fire Detected! 🔥
         </div>
       )}
 
-      <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'center', gap: '10px' }}>
+      {/* Detection Info */}
+      <div style={{marginTop: '10px', fontSize: '0.9rem', color: '#666'}}>
+        {detections.length > 0 && `AI detecting ${detections.length} object(s) • `}
+        Dual Detection: AI + Color Analysis
+      </div>
+
+      {/* Control Buttons */}
+      <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'center', gap: '10px', flexWrap: 'wrap' }}>
         <button
           onClick={() => {
             setMuted(!muted);
-            if (!muted) {
-              // If muting now, stop alarm immediately
-              if (alarmRef.current) {
-                alarmRef.current.pause();
-                alarmRef.current.currentTime = 0;
-              }
-            } else {
-              // If unmuting, play alarm immediately if fire is detected
-              if (alarmOn && alarmRef.current) alarmRef.current.play();
+            if (!muted && alarmRef.current) {
+              alarmRef.current.pause();
+              alarmRef.current.currentTime = 0;
             }
           }}
           style={{
@@ -201,8 +357,9 @@ const FireDetection = () => {
         </button>
       </div>
 
+      {/* Alerts list */}
       <div style={{ marginTop: '30px', textAlign: 'left', maxWidth: '640px', marginLeft: 'auto', marginRight: 'auto' }}>
-        <h2>Live Fire Alerts ({alerts.length})</h2>
+        <h2>Fire Alerts ({alerts.length})</h2>
         <ul style={{ listStyle: 'none', padding: 0 }}>
           {alerts.map((alert, index) => (
             <li
@@ -219,11 +376,21 @@ const FireDetection = () => {
                 marginBottom: '6px',
               }}
             >
-              <span>
-                {alert.type} at {alert.timestamp.toLocaleTimeString()}
-              </span>
+              <div>
+                <div style={{fontWeight: 'bold'}}>{alert.type}</div>
+                <div style={{fontSize: '0.8rem', color: '#666'}}>
+                  {alert.timestamp.toLocaleTimeString()} 
+                  {alert.confidence && ` • Confidence: ${alert.confidence}%`}
+                </div>
+              </div>
               <button
-                onClick={() => toggleRead(index)}
+                onClick={() => {
+                  setAlerts(prev =>
+                    prev.map((a, i) =>
+                      i === index ? { ...a, status: a.status === 'unread' ? 'read' : 'unread' } : a
+                    )
+                  );
+                }}
                 style={{
                   padding: '4px 10px',
                   borderRadius: '4px',
