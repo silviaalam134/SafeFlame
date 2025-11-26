@@ -54,7 +54,7 @@ const FireDetection = () => {
     initCamera();
   }, []);
 
-  // ✅ ADDED: Color-based Fire Detection (Candle-এর জন্য)
+  // ✅ Color-based Fire Detection (Candle-এর জন্য)
   const checkForFireWithColor = () => {
     const video = videoRef.current;
     if (!video || video.videoWidth === 0 || video.videoHeight === 0) return;
@@ -132,7 +132,8 @@ const FireDetection = () => {
       
       console.log('🚨 Large Fire Detected! Fire Pixels:', firePixels);
     }
-    else if (firePixels < 30) {
+    else if (firePixels < 30 && detections.length === 0) {
+      // Only turn off alarm if no AI detections either
       setAlarmOn(false);
     }
   };
@@ -173,10 +174,15 @@ const FireDetection = () => {
           { 
             timestamp: new Date(), 
             status: 'unread', 
-            type: `AI Detected: ${bestDetection.class}`,
+            type: `🤖 AI Detected: ${bestDetection.class}`,
             confidence: Math.round(bestDetection.score * 100)
           },
         ]);
+      }
+      
+      // Turn off alarm if no fire objects detected
+      if (fireObjects.length === 0 && firePixelsCount < 30) {
+        setAlarmOn(false);
       }
     } catch (error) {
       console.error('AI Detection error:', error);
@@ -189,7 +195,7 @@ const FireDetection = () => {
 
     const interval = setInterval(() => {
       checkForFireWithAI();    // AI Detection
-      checkForFireWithColor(); // ✅ Color Detection - ADDED
+      checkForFireWithColor(); // Color Detection
     }, 1000);
 
     return () => clearInterval(interval);
@@ -224,6 +230,7 @@ const FireDetection = () => {
       setStream(null);
       if (videoRef.current) videoRef.current.srcObject = null;
       setAlarmOn(false);
+      setDetections([]);
     }
   };
 
@@ -232,6 +239,15 @@ const FireDetection = () => {
     if (!stream) {
       initCamera();
     }
+  };
+
+  // Toggle alert read status
+  const toggleRead = (index) => {
+    setAlerts(prev => 
+      prev.map((alert, i) => 
+        i === index ? { ...alert, status: alert.status === 'unread' ? 'read' : 'unread' } : alert
+      )
+    );
   };
 
   return (
@@ -256,18 +272,22 @@ const FireDetection = () => {
         
         {/* AI Detections Display */}
         {detections.map((detection, index) => (
-          <div key={index} style={{
-            position: 'absolute',
-            left: detection.bbox[0],
-            top: detection.bbox[1],
-            width: detection.bbox[2],
-            height: detection.bbox[3],
-            border: '2px solid #ff0000',
-            backgroundColor: 'rgba(255,0,0,0.1)',
-            color: 'white',
-            fontSize: '12px',
-            fontWeight: 'bold'
-          }}>
+          <div 
+            key={index} 
+            style={{
+              position: 'absolute',
+              left: `${detection.bbox[0]}px`,
+              top: `${detection.bbox[1]}px`,
+              width: `${detection.bbox[2]}px`,
+              height: `${detection.bbox[3]}px`,
+              border: '2px solid #ff0000',
+              backgroundColor: 'rgba(255,0,0,0.1)',
+              color: 'white',
+              fontSize: '12px',
+              fontWeight: 'bold',
+              pointerEvents: 'none'
+            }}
+          >
             {detection.class} ({Math.round(detection.score * 100)}%)
           </div>
         ))}
@@ -279,7 +299,8 @@ const FireDetection = () => {
       <div style={{ marginTop: '15px', padding: '10px', backgroundColor: '#f5f5f5', borderRadius: '8px' }}>
         <div style={{ fontSize: '0.9rem', color: '#666' }}>
           🔍 Fire Pixels: <strong>{firePixelsCount}</strong> | 
-          Thresholds: <strong>50</strong> (Candle) / <strong>3000</strong> (Large Fire)
+          Thresholds: <strong>50</strong> (Candle) / <strong>3000</strong> (Large Fire) |
+          AI Objects: <strong>{detections.length}</strong>
         </div>
       </div>
 
@@ -323,7 +344,7 @@ const FireDetection = () => {
             cursor: 'pointer',
           }}
         >
-          {muted ? 'Unmute Alarm' : 'Mute Alarm'}
+          {muted ? '🔊 Unmute Alarm' : '🔇 Mute Alarm'}
         </button>
 
         <button
@@ -338,7 +359,7 @@ const FireDetection = () => {
             cursor: 'pointer',
           }}
         >
-          Disconnect Camera
+          📷 Disconnect Camera
         </button>
 
         <button
@@ -353,7 +374,7 @@ const FireDetection = () => {
             cursor: 'pointer',
           }}
         >
-          Reconnect Camera
+          🔄 Reconnect Camera
         </button>
       </div>
 
@@ -365,40 +386,37 @@ const FireDetection = () => {
             <li
               key={index}
               style={{
-                padding: '8px',
+                padding: '12px',
                 borderBottom: '1px solid #ccc',
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                backgroundColor: alert.status === 'unread' ? '#fff5f5' : '#f2fff6',
-                borderLeft: alert.status === 'unread' ? '6px solid #d32f2f' : '6px solid #2e7d32',
+                backgroundColor: alert.status === 'unread' ? '#fff5f5' : '#f8f9fa',
+                borderLeft: alert.status === 'unread' ? '6px solid #d32f2f' : '6px solid #6c757d',
                 borderRadius: '4px',
-                marginBottom: '6px',
+                marginBottom: '8px',
+                flexWrap: 'wrap'
               }}
             >
-              <div>
-                <div style={{fontWeight: 'bold'}}>{alert.type}</div>
-                <div style={{fontSize: '0.8rem', color: '#666'}}>
+              <div style={{flex: 1}}>
+                <div style={{fontWeight: 'bold', fontSize: '0.95rem'}}>{alert.type}</div>
+                <div style={{fontSize: '0.8rem', color: '#666', marginTop: '4px'}}>
                   {alert.timestamp.toLocaleTimeString()} 
                   {alert.confidence && ` • Confidence: ${alert.confidence}%`}
                 </div>
               </div>
               <button
-                onClick={() => {
-                  setAlerts(prev =>
-                    prev.map((a, i) =>
-                      i === index ? { ...a, status: a.status === 'unread' ? 'read' : 'unread' } : a
-                    )
-                  );
-                }}
+                onClick={() => toggleRead(index)}
                 style={{
-                  padding: '4px 10px',
+                  padding: '6px 12px',
                   borderRadius: '4px',
                   border: 'none',
-                  backgroundColor: alert.status === 'unread' ? '#d32f2f' : '#2e7d32',
+                  backgroundColor: alert.status === 'unread' ? '#d32f2f' : '#6c757d',
                   color: 'white',
                   cursor: 'pointer',
                   fontWeight: '600',
+                  fontSize: '0.8rem',
+                  marginLeft: '10px'
                 }}
               >
                 Mark as {alert.status === 'unread' ? 'Read' : 'Unread'}

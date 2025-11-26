@@ -1,93 +1,139 @@
-/* Center the card */
-.login-page {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #f44336, #ff7961);
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+/* Global page styles */
+body {
+  background-color: #f5f0ea; /* soft off-white / brownish background */
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+  padding: 10px;
+  box-sizing: border-box;
 }
 
-/* Card styling */
-.login-card {
-  background: #fff;
-  padding: 40px 30px;
-  border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+/* Container styling for login and register */
+.login-page, .register-container {
   width: 100%;
   max-width: 400px;
+  margin: 100px auto 60px auto; /* top spacing */
+  padding: 32px;
+  background: #ffffff;
+  border-radius: 12px;
   text-align: center;
-  transition: transform 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  box-sizing: border-box;
 }
 
-.login-card:hover {
-  transform: translateY(-5px);
+/* Headings */
+.login-card h2, .register-container h1 {
+  color: #800000; /* maroon */
+  margin-bottom: 20px;
+  font-size: 1.6rem;
 }
 
-.login-card h2 {
-  margin-bottom: 10px;
-  color: #d32f2f;
-}
-
+/* Subtitles */
 .login-subtitle {
   margin-bottom: 25px;
   color: #555;
   font-size: 0.95rem;
 }
 
-/* Input styling */
-.login-card input {
+/* Error messages */
+.register-error {
+  background: #ffebee;
+  color: #a62828;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+/* Form inputs */
+.login-card input, .register-form input {
   width: 100%;
-  padding: 12px 15px;
-  margin-bottom: 18px;
+  max-width: 100%;
+  padding: 12px;
+  margin-bottom: 16px;
   border-radius: 8px;
   border: 1px solid #ccc;
   font-size: 1rem;
-  transition: border-color 0.2s ease;
+  box-sizing: border-box;
 }
 
 .login-card input:focus {
-  border-color: #d32f2f;
+  border-color: #800000;
   outline: none;
 }
 
-/* Button styling */
-.login-card button {
+/* Primary buttons */
+.login-card button, .register-form button {
   width: 100%;
+  max-width: 100%;
   padding: 12px;
-  background-color: #d32f2f;
+  background-color: #800000; /* maroon */
   color: white;
   font-weight: 600;
   border: none;
   border-radius: 8px;
   cursor: pointer;
+  font-size: 1rem;
+  box-sizing: border-box;
   transition: background 0.2s ease;
 }
 
-.login-card button:hover {
-  background-color: #b71c1c;
+.login-card button:hover, .register-form button:hover {
+  background-color: #660000; /* darker maroon */
 }
 
-/* Footer */
-.login-footer {
-  margin-top: 15px;
-  font-size: 0.9rem;
-  color: #555;
-}
-
-.login-footer a {
-  color: #d32f2f;
+/* Links */
+.login-footer a, .register-link {
+  color: #800000;
   font-weight: 600;
   text-decoration: none;
 }
 
-.login-footer a:hover {
+.login-footer a:hover, .register-link:hover {
   text-decoration: underline;
 }
 
-/* Responsive */
+/* Back to Home button - gray */
+.back-home-btn {
+  width: 100%;
+  max-width: 100%;
+  padding: 12px;
+  margin-top: 16px;
+  border-radius: 8px;
+  border: none;
+  background-color: #777; /* gray color */
+  color: white; /* text color */
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 1rem;
+  box-sizing: border-box;
+  transition: background 0.2s ease;
+}
+
+.back-home-btn:hover {
+  background-color: #555; /* darker gray on hover */
+}
+
+/* Responsive adjustments */
 @media (max-width: 480px) {
-  .login-card {
-    padding: 30px 20px;
+  .login-card, .register-container {
+    padding: 25px 20px;
+    margin-top: 80px;
+  }
+  .login-card h2, .register-container h1 {
+    font-size: 1.4rem;
+  }
+  .login-subtitle {
+    font-size: 0.9rem;
+  }
+  .login-card input, .register-form input,
+  .login-card button, .register-form button,
+  .back-home-btn {
+    padding: 10px;
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 360px) {
+  body {
+    padding: 10px;
   }
 }

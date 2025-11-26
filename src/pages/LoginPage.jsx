@@ -18,7 +18,7 @@ const LoginPage = () => {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message);
       localStorage.setItem('token', data.token);
-      localStorage.setItem('userName', data.user.name); 
+      localStorage.setItem('userName', data.user.name); // ✅ Fixed conflict
       alert('Login successful');
       navigate('/');
     } catch (err) {
@@ -31,26 +31,36 @@ const LoginPage = () => {
       <div className="login-card">
         <h2>Welcome Back</h2>
         <p className="login-subtitle">Login to your account</p>
+
         <form onSubmit={handleLogin}>
           <input
             type="email"
             placeholder="Email"
             value={email}
-            onChange={e => setEmail(e.target.value)}
+            onChange={(e) => setEmail(e.target.value)}
             required
           />
           <input
             type="password"
             placeholder="Password"
             value={password}
-            onChange={e => setPassword(e.target.value)}
+            onChange={(e) => setPassword(e.target.value)}
             required
           />
           <button type="submit">Login</button>
         </form>
+
         <p className="login-footer">
           Don't have an account? <Link to="/register">Register</Link>
         </p>
+
+        {/* Back to Home button */}
+        <button
+          onClick={() => navigate('/')}
+          className="back-home-btn"
+        >
+          Back to Home
+        </button>
       </div>
     </div>
   );

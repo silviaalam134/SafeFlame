@@ -138,11 +138,11 @@
   text-decoration: underline;
 }
 
-/* Footer */
+/* Footer - color changed to red */
 .homepage__footer {
   padding: 20px 32px;
   text-align: center;
-  background: #2e7d32;
+  background: #d32f2f; /* ✅ changed from green to red */
   color: white;
   font-weight: 500;
 }

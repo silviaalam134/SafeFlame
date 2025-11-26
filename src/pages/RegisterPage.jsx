@@ -72,6 +72,14 @@ const RegisterPage = () => {
       <p>
         Already have an account? <a href="/login" className="register-link">Login</a>
       </p>
+
+      {/* Back to Home button */}
+      <button
+        onClick={() => navigate('/')}
+        className="back-home-btn"
+      >
+        Back to Home
+      </button>
     </div>
   );
 };
