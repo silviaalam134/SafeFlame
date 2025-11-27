@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import Dashboard from './Dashboard'; // AlertPage component can also be used if needed
+import Dashboard from './Dashboard';
 import './Homepage.css';
 
 const Homepage = () => {
@@ -39,46 +39,44 @@ const Homepage = () => {
     fetchStats();
   }, [token]);
 
-  const handleLogout = () => {
-    if (window.confirm('Do you want to logout?')) {
-      localStorage.removeItem('userName');
-      localStorage.removeItem('token');
-      setUserName('');
-      navigate('/');
-      window.location.reload();
-    }
-  };
-
   return (
     <div className="homepage">
       {/* Navbar */}
       <header className="homepage__header">
         <div className="homepage__logo">SafeFlame</div>
         <nav className="homepage__nav">
-          <a href="#home">Home</a>
-          <a href="#alerts">Alerts</a>
-          <a href="#stats">Statistics</a>
-          <a href="#about">About</a>
+          <a href="#home">Home  </a>
+          <a href="#alerts">Alerts </a>
+          <a href="#stats"> Statistics </a>
+          <a href="#about">About  </a>
           <a href="#contact">Contact</a>
+
           {userName ? (
             <button
-              onClick={handleLogout}
+              onClick={() => navigate('/profile')}
               style={{
-                marginLeft: '24px',
                 padding: '8px 16px',
                 backgroundColor: 'green',
                 color: 'white',
                 borderRadius: '6px',
                 fontWeight: '600',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px', // space between name and icon
               }}
             >
-              {userName} (Logout)
+              {userName}
+              <span style={{ display: 'inline-block', width: '16px', height: '16px' }}>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="white" viewBox="0 0 24 24">
+                  <path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5z"/>
+                </svg>
+              </span>
             </button>
           ) : (
             <Link
               to="/login"
               style={{
-                marginLeft: '24px',
                 padding: '8px 16px',
                 backgroundColor: '#d32f2f',
                 color: 'white',
@@ -117,11 +115,7 @@ const Homepage = () => {
       {/* Alerts Section */}
       <section className="homepage__alerts" id="alerts">
         <h2>Fire Alerts</h2>
-        {token ? (
-          <Dashboard /> // automatically show logged-in user's fire alerts
-        ) : (
-          <p>Please login to see your previous fire alerts history.</p>
-        )}
+        {token ? <Dashboard /> : <p>Please login to see your previous fire alerts history.</p>}
       </section>
 
       {/* Statistics Section */}

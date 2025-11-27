@@ -20,15 +20,15 @@ const LoginPage = () => {
 
       if (!res.ok) throw new Error(data.message);
 
-      // Save token and userName
+      // Save token and full user info
       localStorage.setItem('token', data.token);
       localStorage.setItem('userName', data.user.name);
+      localStorage.setItem('user', JSON.stringify(data.user)); // store full user object
 
       alert('Login successful');
 
-      // Redirect to homepage after login
-      navigate('/');
-      window.location.reload(); // To update navbar dynamically
+      // Redirect to profile page instead of homepage
+      navigate('/profile');
     } catch (err) {
       alert(err.message);
     }

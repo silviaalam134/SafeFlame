@@ -16,6 +16,15 @@ const ProfilePage = () => {
 
   if (!user) return null;
 
+  const handleLogout = () => {
+    if (window.confirm('Are you sure you want to log out?')) {
+      localStorage.removeItem('user');
+      localStorage.removeItem('userName');
+      localStorage.removeItem('token');
+      navigate('/login');
+    }
+  };
+
   return (
     <div style={{ padding: '40px', maxWidth: '500px', margin: '0 auto', textAlign: 'center' }}>
       <h2>{user.name}'s Profile</h2>
@@ -23,7 +32,29 @@ const ProfilePage = () => {
       <p><strong>Phone:</strong> {user.phone}</p>
       <p><strong>Address:</strong> {user.address}</p>
       <p><strong>Account Created:</strong> {new Date(user.createdAt).toLocaleString()}</p>
-      <button onClick={() => navigate('/')} style={{ marginTop: '20px', padding: '10px 20px' }}>Back to Home</button>
+
+      <div style={{ marginTop: '30px', display: 'flex', justifyContent: 'center', gap: '20px' }}>
+        <button
+          onClick={() => navigate('/')}
+          style={{ padding: '10px 20px', borderRadius: '6px', cursor: 'pointer' }}
+        >
+          Back to Home
+        </button>
+
+        <button
+          onClick={handleLogout}
+          style={{
+            padding: '10px 20px',
+            borderRadius: '6px',
+            backgroundColor: '#d32f2f',
+            color: 'white',
+            fontWeight: '600',
+            cursor: 'pointer'
+          }}
+        >
+          Logout
+        </button>
+      </div>
     </div>
   );
 };

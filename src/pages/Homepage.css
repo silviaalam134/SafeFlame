@@ -16,6 +16,7 @@
   position: sticky;
   top: 0;
   z-index: 100;
+  flex-wrap: wrap; /* allow wrapping only if necessary */
 }
 
 .homepage__logo {
@@ -23,15 +24,41 @@
   font-size: 1.5rem;
 }
 
+.homepage__nav {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap; /* keep everything in one line if possible */
+}
+
 .homepage__nav a {
   color: white;
-  margin-left: 24px;
   text-decoration: none;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .homepage__nav a:hover {
   text-decoration: underline;
+}
+
+/* Profile button */
+.homepage__nav button {
+  margin-left: 0; /* spacing handled by gap */
+  padding: 8px 16px;
+  background-color: green;
+  color: white;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px; /* space between name and icon */
+  white-space: nowrap;
+}
+
+.homepage__nav button:hover {
+  background-color: #2c7a2c;
 }
 
 /* Hero Section */
@@ -138,26 +165,17 @@
   text-decoration: underline;
 }
 
-/* Footer - color changed to red */
+/* Footer */
 .homepage__footer {
   padding: 20px 32px;
   text-align: center;
-  background: #d32f2f; /* ✅ changed from green to red */
+  background: #d32f2f;
   color: white;
   font-weight: 500;
 }
 
 /* Responsive */
 @media (max-width: 720px) {
-  .homepage__header {
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .homepage__nav a {
-    margin-left: 0;
-  }
-
   .homepage__hero h1 {
     font-size: 2rem;
   }
