@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import Dashboard from './Dashboard';
+import Dashboard from './Dashboard'; // AlertPage component can also be used if needed
 import './Homepage.css';
 
 const Homepage = () => {
@@ -12,17 +12,16 @@ const Homepage = () => {
   });
 
   const [userName, setUserName] = useState(localStorage.getItem('userName') || '');
-  const [showAlerts, setShowAlerts] = useState(false);
+  const token = localStorage.getItem('token');
 
   // Fetch user-specific statistics
   useEffect(() => {
     const fetchStats = async () => {
-      const token = localStorage.getItem('token');
-      if (!token) return; // skip if not logged in
+      if (!token) return;
 
       try {
         const res = await fetch('http://localhost:5000/api/alerts/stats', {
-          headers: { 'Authorization': `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         });
         if (!res.ok) throw new Error('Failed to fetch stats');
 
@@ -30,7 +29,7 @@ const Homepage = () => {
         setStats({
           totalAlerts: data.totalAlerts || 0,
           unreadAlerts: data.unreadAlerts || 0,
-          resolvedAlerts: data.resolvedAlerts || 0
+          resolvedAlerts: data.resolvedAlerts || 0,
         });
       } catch (err) {
         console.error(err);
@@ -38,7 +37,7 @@ const Homepage = () => {
     };
 
     fetchStats();
-  }, [userName]);
+  }, [token]);
 
   const handleLogout = () => {
     if (window.confirm('Do you want to logout?')) {
@@ -52,16 +51,15 @@ const Homepage = () => {
 
   return (
     <div className="homepage">
-      {/* Header/Navbar */}
+      {/* Navbar */}
       <header className="homepage__header">
         <div className="homepage__logo">SafeFlame</div>
         <nav className="homepage__nav">
           <a href="#home">Home</a>
-          <a href="#alerts" onClick={() => setShowAlerts(true)}>Alerts</a>
+          <a href="#alerts">Alerts</a>
           <a href="#stats">Statistics</a>
           <a href="#about">About</a>
           <a href="#contact">Contact</a>
-          {/* Login / Logout Button */}
           {userName ? (
             <button
               onClick={handleLogout}
@@ -119,21 +117,17 @@ const Homepage = () => {
       {/* Alerts Section */}
       <section className="homepage__alerts" id="alerts">
         <h2>Fire Alerts</h2>
-        {showAlerts ? (
-          userName ? (
-            <Dashboard />
-          ) : (
-            <p>Please login to see your previous fire alerts history.</p>
-          )
+        {token ? (
+          <Dashboard /> // automatically show logged-in user's fire alerts
         ) : (
-          <p>Click "Alerts" in the navbar to view your fire alerts.</p>
+          <p>Please login to see your previous fire alerts history.</p>
         )}
       </section>
 
       {/* Statistics Section */}
       <section className="homepage__stats" id="stats">
         <h2>Alert Statistics</h2>
-        {userName ? (
+        {token ? (
           <div className="homepage__stats-grid">
             <div className="homepage__stat-card">
               <h3>Total Alerts</h3>
