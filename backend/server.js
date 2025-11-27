@@ -1,7 +1,12 @@
-// CLEAR MODULE CACHE - ADD THESE 3 LINES AT TOP
-delete require.cache[require.resolve('./models/User')];
-delete require.cache[require.resolve('./routes/auth')];
-console.log('🔄 MODULE CACHE CLEARED');
+// 🔄 CLEAR MODULE CACHE - DEVELOPMENT ONLY
+try {
+  delete require.cache[require.resolve('./models/User')];
+  delete require.cache[require.resolve('./routes/auth')];
+  delete require.cache[require.resolve('./routes/alerts')];
+  console.log('🔄 MODULE CACHE CLEARED');
+} catch (err) {
+  console.log('⚠️ Module cache clear warning:', err.message);
+}
 
 const express = require('express');
 const mongoose = require('mongoose');
@@ -12,26 +17,25 @@ dotenv.config();
 
 const app = express();
 
-// Enhanced CORS
+// Middleware
+app.use(express.json());
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: 'http://localhost:3000', // React app origin
   credentials: true
 }));
 
-app.use(express.json());
-
 console.log('🔍 Starting server...');
 
-// ✅ FIXED: MongoDB Connection (remove deprecated options)
+// ✅ MONGO DB CONNECTION
 mongoose.connect(process.env.MONGO_URI)
-.then(() => console.log("✅ MongoDB connected successfully"))
-.catch(err => {
-  console.log("❌ MongoDB connection failed:");
-  console.log("Error:", err.message);
-  process.exit(1);
-});
+  .then(() => console.log("✅ MongoDB connected successfully"))
+  .catch(err => {
+    console.log("❌ MongoDB connection failed:");
+    console.log("Error:", err.message);
+    process.exit(1);
+  });
 
-// Test route
+// TEST ROUTE
 app.get('/api/test', (req, res) => {
   console.log('🎯 /api/test route hit');
   res.json({ 
@@ -40,7 +44,7 @@ app.get('/api/test', (req, res) => {
   });
 });
 
-// Load auth routes
+// LOAD AUTH ROUTES
 try {
   const authRoutes = require('./routes/auth');
   app.use('/api/auth', authRoutes);
@@ -49,7 +53,7 @@ try {
   console.log('❌ Failed to load auth routes:', error.message);
 }
 
-// ✅ ADD ALERT ROUTES HERE
+// LOAD ALERT ROUTES
 try {
   const alertRoutes = require('./routes/alerts');
   app.use('/api/alerts', alertRoutes);
@@ -58,10 +62,11 @@ try {
   console.log('❌ Failed to load alert routes:', error.message);
 }
 
+// START SERVER
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🔥 Server running on port ${PORT}`);
-  console.log(`📍 Test URLs:`);
+  console.log('📍 Test URLs:');
   console.log(`   http://localhost:${PORT}/api/test`);
   console.log(`   http://localhost:${PORT}/api/auth/test`);
   console.log(`   http://localhost:${PORT}/api/alerts`);

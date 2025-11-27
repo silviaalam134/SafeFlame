@@ -6,6 +6,8 @@ const RegisterPage = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [phone, setPhone] = useState('');
+  const [address, setAddress] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
@@ -19,7 +21,7 @@ const RegisterPage = () => {
       const res = await fetch('http://localhost:5000/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ name, email, password, phone, address }),
       });
 
       const data = await res.json();
@@ -28,7 +30,7 @@ const RegisterPage = () => {
         throw new Error(data.message || 'Registration failed');
       }
 
-      // Success
+      // Save name in localStorage for profile page redirect
       localStorage.setItem('userName', data.user.name);
       alert('Registered successfully!');
       navigate('/login');
@@ -65,6 +67,20 @@ const RegisterPage = () => {
           onChange={(e) => setPassword(e.target.value)}
           required
         />
+        <input
+          type="text"
+          placeholder="Phone"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          required
+        />
+        <input
+          type="text"
+          placeholder="Address"
+          value={address}
+          onChange={(e) => setAddress(e.target.value)}
+          required
+        />
         <button type="submit" disabled={loading}>
           {loading ? 'Registering...' : 'Register'}
         </button>
@@ -72,12 +88,7 @@ const RegisterPage = () => {
       <p>
         Already have an account? <a href="/login" className="register-link">Login</a>
       </p>
-
-      {/* Back to Home button */}
-      <button
-        onClick={() => navigate('/')}
-        className="back-home-btn"
-      >
+      <button onClick={() => navigate('/')} className="back-home-btn">
         Back to Home
       </button>
     </div>
