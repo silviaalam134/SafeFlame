@@ -14,23 +14,31 @@ const Homepage = () => {
   const [userName, setUserName] = useState(localStorage.getItem('userName') || '');
   const [showAlerts, setShowAlerts] = useState(false);
 
+  // Fetch user-specific statistics
   useEffect(() => {
     const fetchStats = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) return; // skip if not logged in
+
       try {
-        const res = await fetch('http://localhost:5000/api/alerts/stats');
+        const res = await fetch('http://localhost:5000/api/alerts/stats', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error('Failed to fetch stats');
+
         const data = await res.json();
-        if (Array.isArray(data)) {
-          const total = data.length;
-          const unread = data.filter(a => a.status?.toLowerCase() === 'unread').length;
-          const resolved = total - unread;
-          setStats({ totalAlerts: total, unreadAlerts: unread, resolvedAlerts: resolved });
-        }
+        setStats({
+          totalAlerts: data.totalAlerts || 0,
+          unreadAlerts: data.unreadAlerts || 0,
+          resolvedAlerts: data.resolvedAlerts || 0
+        });
       } catch (err) {
-        console.error('Failed to fetch stats:', err);
+        console.error(err);
       }
     };
+
     fetchStats();
-  }, []);
+  }, [userName]);
 
   const handleLogout = () => {
     if (window.confirm('Do you want to logout?')) {
@@ -38,6 +46,7 @@ const Homepage = () => {
       localStorage.removeItem('token');
       setUserName('');
       navigate('/');
+      window.location.reload();
     }
   };
 
@@ -124,20 +133,24 @@ const Homepage = () => {
       {/* Statistics Section */}
       <section className="homepage__stats" id="stats">
         <h2>Alert Statistics</h2>
-        <div className="homepage__stats-grid">
-          <div className="homepage__stat-card">
-            <h3>Total Alerts</h3>
-            <p>{stats.totalAlerts}</p>
+        {userName ? (
+          <div className="homepage__stats-grid">
+            <div className="homepage__stat-card">
+              <h3>Total Alerts</h3>
+              <p>{stats.totalAlerts}</p>
+            </div>
+            <div className="homepage__stat-card">
+              <h3>Unread Alerts</h3>
+              <p>{stats.unreadAlerts}</p>
+            </div>
+            <div className="homepage__stat-card">
+              <h3>Resolved Alerts</h3>
+              <p>{stats.resolvedAlerts}</p>
+            </div>
           </div>
-          <div className="homepage__stat-card">
-            <h3>Unread Alerts</h3>
-            <p>{stats.unreadAlerts}</p>
-          </div>
-          <div className="homepage__stat-card">
-            <h3>Resolved Alerts</h3>
-            <p>{stats.resolvedAlerts}</p>
-          </div>
-        </div>
+        ) : (
+          <p>Please login to view your alert statistics.</p>
+        )}
       </section>
 
       {/* About Section */}

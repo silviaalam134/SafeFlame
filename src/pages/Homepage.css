@@ -37,7 +37,7 @@
 /* Hero Section */
 .homepage__hero {
   padding: 80px 32px;
-  background: #ffebee;
+  background: hsl(23, 76%, 92%);
   text-align: center;
 }
 
@@ -64,7 +64,7 @@
 /* Statistics Section */
 .homepage__stats {
   padding: 40px 32px;
-  background: #f3f4f6;
+  background: #f6f0eb;
 }
 
 .homepage__stats h2 {
@@ -81,7 +81,7 @@
 .homepage__stat-card {
   padding: 24px;
   border-radius: 12px;
-  background: white;
+  background: rgb(254, 254, 254);
   box-shadow: 0 4px 12px rgba(0,0,0,0.06);
   text-align: center;
   transition: transform 150ms ease, box-shadow 150ms ease;

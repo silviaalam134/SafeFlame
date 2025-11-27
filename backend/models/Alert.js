@@ -27,7 +27,7 @@ const AlertSchema = new mongoose.Schema({
   },
   detectedBy: {  
     type: String,
-    default: 'Unknown User'
+    default: ''  // optional, can be blank
   }
 }, {
   timestamps: true

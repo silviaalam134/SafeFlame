@@ -35,7 +35,7 @@
 .dashboard__status {
   padding: 12px;
   border-radius: 8px;
-  background: #fff8e1;
+  background: #f0e7c9;
   color: #665200;
   font-weight: 600;
   margin-bottom: 12px;
@@ -63,7 +63,7 @@
 .dashboard__empty {
   padding: 16px;
   border-radius: 8px;
-  background: #f3f4f6;
+  background: #f5eae2;
   color: #444;
   text-align: center;
 }
