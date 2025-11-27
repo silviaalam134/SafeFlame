@@ -9,13 +9,26 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Check if user is logged in
+  const token = localStorage.getItem('token');
+
   // Fetch alerts from backend
   const fetchAlerts = async (signal) => {
+    if (!token) {
+      setLoading(false);
+      return; // User not logged in, fetch korbena
+    }
+
     try {
       setLoading(true);
       setError(null);
 
-      const res = await fetch(API_URL, { signal });
+      const res = await fetch(API_URL, {
+        signal,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (!res.ok) {
         throw new Error(`Server responded with ${res.status}`);
@@ -23,14 +36,13 @@ const Dashboard = () => {
 
       const data = await res.json();
 
-      // Expecting array of alerts; defensive check
       if (!Array.isArray(data)) {
         throw new Error('Invalid response format: expected an array of alerts');
       }
 
       setAlerts(data);
     } catch (err) {
-      if (err.name === 'AbortError') return; // fetch was aborted due to unmount
+      if (err.name === 'AbortError') return;
       console.error('Failed to fetch alerts:', err);
       setError(err.message || 'Failed to fetch alerts');
     } finally {
@@ -42,14 +54,22 @@ const Dashboard = () => {
     const controller = new AbortController();
     fetchAlerts(controller.signal);
 
-    // Poll every 15 seconds to keep dashboard fresh (adjust as needed)
     const id = setInterval(() => fetchAlerts(controller.signal), 15000);
 
     return () => {
       controller.abort();
       clearInterval(id);
     };
-  }, []);
+  }, [token]); // token dependency
+
+  // If not logged in
+  if (!token) {
+    return (
+      <div className="dashboard__login-warning">
+        <p>Login to see your previous fire alerts history.</p>
+      </div>
+    );
+  }
 
   return (
     <main className="dashboard">
@@ -69,7 +89,6 @@ const Dashboard = () => {
             ) : (
               <div className="dashboard__list">
                 {alerts.map((a) => (
-                  // Use a stable key if available (id or _id), otherwise fallback to timestamp+type
                   <AlertCard
                     key={a.id ?? a._id ?? `${a.type}-${a.timestamp}`}
                     alert={a}

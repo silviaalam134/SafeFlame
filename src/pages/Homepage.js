@@ -1,19 +1,23 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Dashboard from './Dashboard';
 import './Homepage.css';
 
 const Homepage = () => {
+  const navigate = useNavigate();
   const [stats, setStats] = useState({
     totalAlerts: 0,
     unreadAlerts: 0,
     resolvedAlerts: 0,
   });
 
+  const [userName, setUserName] = useState(localStorage.getItem('userName') || '');
+  const [showAlerts, setShowAlerts] = useState(false);
+
   useEffect(() => {
     const fetchStats = async () => {
       try {
-       const res = await fetch('http://localhost:5000/api/alerts/stats');
+        const res = await fetch('http://localhost:5000/api/alerts/stats');
         const data = await res.json();
         if (Array.isArray(data)) {
           const total = data.length;
@@ -28,6 +32,15 @@ const Homepage = () => {
     fetchStats();
   }, []);
 
+  const handleLogout = () => {
+    if (window.confirm('Do you want to logout?')) {
+      localStorage.removeItem('userName');
+      localStorage.removeItem('token');
+      setUserName('');
+      navigate('/');
+    }
+  };
+
   return (
     <div className="homepage">
       {/* Header/Navbar */}
@@ -35,25 +48,41 @@ const Homepage = () => {
         <div className="homepage__logo">SafeFlame</div>
         <nav className="homepage__nav">
           <a href="#home">Home</a>
-          <a href="#alerts">Alerts</a>
+          <a href="#alerts" onClick={() => setShowAlerts(true)}>Alerts</a>
           <a href="#stats">Statistics</a>
           <a href="#about">About</a>
           <a href="#contact">Contact</a>
-          {/* Login Button */}
-          <Link
-            to="/login"
-            style={{
-              marginLeft: '24px',
-              padding: '8px 16px',
-              backgroundColor: '#d32f2f', // red background
-              color: 'white',              // white text
-              borderRadius: '6px',
-              textDecoration: 'none',
-              fontWeight: '600',
-            }}
-          >
-            Login
-          </Link>
+          {/* Login / Logout Button */}
+          {userName ? (
+            <button
+              onClick={handleLogout}
+              style={{
+                marginLeft: '24px',
+                padding: '8px 16px',
+                backgroundColor: 'green',
+                color: 'white',
+                borderRadius: '6px',
+                fontWeight: '600',
+              }}
+            >
+              {userName} (Logout)
+            </button>
+          ) : (
+            <Link
+              to="/login"
+              style={{
+                marginLeft: '24px',
+                padding: '8px 16px',
+                backgroundColor: '#d32f2f',
+                color: 'white',
+                borderRadius: '6px',
+                fontWeight: '600',
+                textDecoration: 'none',
+              }}
+            >
+              Login
+            </Link>
+          )}
         </nav>
       </header>
 
@@ -80,8 +109,16 @@ const Homepage = () => {
 
       {/* Alerts Section */}
       <section className="homepage__alerts" id="alerts">
-        <h2>Live Fire Alerts</h2>
-        <Dashboard />
+        <h2>Fire Alerts</h2>
+        {showAlerts ? (
+          userName ? (
+            <Dashboard />
+          ) : (
+            <p>Please login to see your previous fire alerts history.</p>
+          )
+        ) : (
+          <p>Click "Alerts" in the navbar to view your fire alerts.</p>
+        )}
       </section>
 
       {/* Statistics Section */}

@@ -15,14 +15,20 @@ const LoginPage = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
+
       const data = await res.json();
+
       if (!res.ok) throw new Error(data.message);
 
+      // Save token and userName
       localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      localStorage.setItem('userName', data.user.name);
 
       alert('Login successful');
-      navigate('/profile'); // redirect to profile page
+
+      // Redirect to homepage after login
+      navigate('/');
+      window.location.reload(); // To update navbar dynamically
     } catch (err) {
       alert(err.message);
     }
@@ -33,13 +39,36 @@ const LoginPage = () => {
       <div className="login-card">
         <h2>Welcome Back</h2>
         <p className="login-subtitle">Login to your account</p>
+
         <form onSubmit={handleLogin}>
-          <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-          <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
           <button type="submit">Login</button>
         </form>
-        <p className="login-footer">Don't have an account? <Link to="/register">Register</Link></p>
-        <button onClick={() => navigate('/')} className="back-home-btn">Back to Home</button>
+
+        <p className="login-footer">
+          Don't have an account? <Link to="/register">Register</Link>
+        </p>
+
+        {/* Back to Home button */}
+        <button
+          onClick={() => navigate('/')}
+          className="back-home-btn"
+        >
+          Back to Home
+        </button>
       </div>
     </div>
   );

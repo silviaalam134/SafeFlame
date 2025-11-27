@@ -1,6 +1,11 @@
 const mongoose = require('mongoose');
 
 const AlertSchema = new mongoose.Schema({
+  userId: {  // Logged-in user who generated the alert
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
   type: {
     type: String,
     required: true,
@@ -20,7 +25,7 @@ const AlertSchema = new mongoose.Schema({
     enum: ['low', 'medium', 'high', 'critical'],
     default: 'high'
   },
-  detectedBy: {  // ✅ এই field টা যোগ করো
+  detectedBy: {  
     type: String,
     default: 'Unknown User'
   }
