@@ -35,13 +35,6 @@ const ProfilePage = () => {
 
       <div style={{ marginTop: '30px', display: 'flex', justifyContent: 'center', gap: '20px' }}>
         <button
-          onClick={() => navigate('/')}
-          style={{ padding: '10px 20px', borderRadius: '6px', cursor: 'pointer' }}
-        >
-          Back to Home
-        </button>
-
-        <button
           onClick={handleLogout}
           style={{
             padding: '10px 20px',

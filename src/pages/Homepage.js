@@ -1,30 +1,25 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import Dashboard from './Dashboard';
 import './Homepage.css';
 
 const Homepage = () => {
-  const navigate = useNavigate();
   const [stats, setStats] = useState({
     totalAlerts: 0,
     unreadAlerts: 0,
     resolvedAlerts: 0,
   });
 
-  const [userName, setUserName] = useState(localStorage.getItem('userName') || '');
   const token = localStorage.getItem('token');
 
-  // Fetch user-specific statistics
   useEffect(() => {
     const fetchStats = async () => {
       if (!token) return;
-
       try {
         const res = await fetch('http://localhost:5000/api/alerts/stats', {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (!res.ok) throw new Error('Failed to fetch stats');
-
         const data = await res.json();
         setStats({
           totalAlerts: data.totalAlerts || 0,
@@ -35,62 +30,11 @@ const Homepage = () => {
         console.error(err);
       }
     };
-
     fetchStats();
   }, [token]);
 
   return (
     <div className="homepage">
-      {/* Navbar */}
-      <header className="homepage__header">
-        <div className="homepage__logo">SafeFlame</div>
-        <nav className="homepage__nav">
-          <a href="#home">Home  </a>
-          <a href="#alerts">Alerts </a>
-          <a href="#stats"> Statistics </a>
-          <a href="#about">About  </a>
-          <a href="#contact">Contact</a>
-
-          {userName ? (
-            <button
-              onClick={() => navigate('/profile')}
-              style={{
-                padding: '8px 16px',
-                backgroundColor: 'green',
-                color: 'white',
-                borderRadius: '6px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px', // space between name and icon
-              }}
-            >
-              {userName}
-              <span style={{ display: 'inline-block', width: '16px', height: '16px' }}>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="white" viewBox="0 0 24 24">
-                  <path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5z"/>
-                </svg>
-              </span>
-            </button>
-          ) : (
-            <Link
-              to="/login"
-              style={{
-                padding: '8px 16px',
-                backgroundColor: '#d32f2f',
-                color: 'white',
-                borderRadius: '6px',
-                fontWeight: '600',
-                textDecoration: 'none',
-              }}
-            >
-              Login
-            </Link>
-          )}
-        </nav>
-      </header>
-
       {/* Hero Section */}
       <section className="homepage__hero" id="home">
         <h1>Welcome to SafeFlame Dashboard</h1>
@@ -155,16 +99,11 @@ const Homepage = () => {
         <h2>Contact Us</h2>
         <p>Email: support@safeflame.com | Phone: +880 123 456 789</p>
         <div className="homepage__social">
-          <a href="!#" onClick={(e) => e.preventDefault()}>Facebook</a>
-          <a href="!#" onClick={(e) => e.preventDefault()}>Twitter</a>
-          <a href="!#" onClick={(e) => e.preventDefault()}>LinkedIn</a>
+          <a href="#!" onClick={(e) => e.preventDefault()}>Facebook</a>
+          <a href="#!" onClick={(e) => e.preventDefault()}>Twitter</a>
+          <a href="#!" onClick={(e) => e.preventDefault()}>LinkedIn</a>
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="homepage__footer">
-        &copy; {new Date().getFullYear()} SafeFlame. All rights reserved.
-      </footer>
     </div>
   );
 };

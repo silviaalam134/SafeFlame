@@ -1,0 +1,9 @@
+/* Footer.css */
+
+.homepage__footer {
+  padding: 20px 32px;
+  text-align: center;
+  background: #d32f2f;
+  color: white;
+  font-weight: 500;
+}
