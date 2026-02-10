@@ -7,6 +7,7 @@ const FireDetection = () => {
   const videoRef = useRef(null);
   const alarmRef = useRef(null);
   const canvasRef = useRef(document.createElement('canvas'));
+  const lastAlertTimeRef = useRef(0); // Prevent duplicate alerts within 3 seconds
 
   const [alarmOn, setAlarmOn] = useState(false);
   const [muted, setMuted] = useState(false);
@@ -43,6 +44,14 @@ const FireDetection = () => {
   const saveAlertToBackend = async (detectedObject, severity = 'high') => {
     const token = localStorage.getItem('token');
     if (!token) return;
+    
+    // Prevent duplicate alerts within 3 seconds
+    const now = Date.now();
+    if (now - lastAlertTimeRef.current < 3000) {
+      return;
+    }
+    lastAlertTimeRef.current = now;
+    
     try {
       const res = await fetch('http://localhost:5000/api/alerts', {
         method: 'POST',
