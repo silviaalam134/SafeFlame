@@ -12,15 +12,16 @@ const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const cors = require('cors');
+const path = require('path');
 
-dotenv.config();
+dotenv.config({ path: path.join(__dirname, '.env') });
 
 const app = express();
 
 // Middleware
 app.use(express.json());
 app.use(cors({
-  origin: 'http://localhost:3000', // React app origin
+  origin: ['http://localhost:3000', 'http://localhost:3001'], // React app origins
   credentials: true
 }));
 
@@ -35,7 +36,7 @@ mongoose.connect(process.env.MONGO_URI)
     process.exit(1);
   });
 
-// TEST ROUTE
+// 🔹 TEST ROUTE
 app.get('/api/test', (req, res) => {
   console.log('🎯 /api/test route hit');
   res.json({ 
@@ -44,7 +45,7 @@ app.get('/api/test', (req, res) => {
   });
 });
 
-// LOAD AUTH ROUTES
+// 🔹 LOAD AUTH ROUTES
 try {
   const authRoutes = require('./routes/auth');
   app.use('/api/auth', authRoutes);
@@ -53,7 +54,7 @@ try {
   console.log('❌ Failed to load auth routes:', error.message);
 }
 
-// LOAD ALERT ROUTES
+// 🔹 LOAD ALERT ROUTES
 try {
   const alertRoutes = require('./routes/alerts');
   app.use('/api/alerts', alertRoutes);
@@ -62,7 +63,7 @@ try {
   console.log('❌ Failed to load alert routes:', error.message);
 }
 
-// START SERVER
+// 🔹 START SERVER
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🔥 Server running on port ${PORT}`);
