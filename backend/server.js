@@ -3,6 +3,8 @@ try {
   delete require.cache[require.resolve('./models/User')];
   delete require.cache[require.resolve('./routes/auth')];
   delete require.cache[require.resolve('./routes/alerts')];
+  delete require.cache[require.resolve('./routes/detectFire')];
+  delete require.cache[require.resolve('./routes/alarmTimer')];
   console.log('🔄 MODULE CACHE CLEARED');
 } catch (err) {
   console.log('⚠️ Module cache clear warning:', err.message);
@@ -61,6 +63,24 @@ try {
   console.log('✅ Alert routes loaded successfully');
 } catch (error) {
   console.log('❌ Failed to load alert routes:', error.message);
+}
+
+// 🔹 LOAD ROBOFLOW FIRE DETECTION ROUTE
+try {
+  const detectFireRoutes = require('./routes/detectFire');
+  app.use('/api', detectFireRoutes);
+  console.log('✅ Roboflow detection route loaded successfully');
+} catch (error) {
+  console.log('❌ Failed to load Roboflow detection route:', error.message);
+}
+
+// 🔹 LOAD TELEGRAM ALARM ESCALATION ROUTE
+try {
+  const alarmTimerRoutes = require('./routes/alarmTimer');
+  app.use('/api/alarm', alarmTimerRoutes);
+  console.log('✅ Alarm timer route loaded successfully');
+} catch (error) {
+  console.log('❌ Failed to load alarm timer route:', error.message);
 }
 
 // 🔹 START SERVER

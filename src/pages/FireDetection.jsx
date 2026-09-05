@@ -1,34 +1,28 @@
 import React, { useRef, useEffect, useState } from 'react';
-import * as tf from '@tensorflow/tfjs';
-import * as cocossd from '@tensorflow-models/coco-ssd';
-import AlertCard from '../components/AlertCard';
+
+// Map Roboflow confidence to the severity values accepted by the alert model.
+const getSeverity = (confidence) => {
+  if (confidence < 0.55) return 'low';
+  if (confidence < 0.7) return 'medium';
+  if (confidence < 0.85) return 'high';
+  return 'critical';
+};
 
 const FireDetection = () => {
   const videoRef = useRef(null);
   const alarmRef = useRef(null);
-  const canvasRef = useRef(document.createElement('canvas'));
+  const roboflowCanvasRef = useRef(document.createElement('canvas'));
   const lastAlertTimeRef = useRef(0); // Prevent duplicate alerts within 3 seconds
+  const roboflowRequestInFlightRef = useRef(false); // Prevent overlapping inference requests
+  const alarmActiveRef = useRef(false); // Tracks the fire alarm transition without changing detection logic
+  const alarmOffTimerRef = useRef(null); // Keeps the alarm active for 30 seconds after the last fire prediction
 
   const [alarmOn, setAlarmOn] = useState(false);
   const [muted, setMuted] = useState(false);
   const [stream, setStream] = useState(null);
   const [alerts, setAlerts] = useState([]);
   const [stats, setStats] = useState({ totalAlerts: 0, unreadAlerts: 0, resolvedAlerts: 0 });
-  const [model, setModel] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [detections, setDetections] = useState([]);
-  const [firePixelsCount, setFirePixelsCount] = useState(0);
-
-  // Load AI model
-  useEffect(() => {
-    const loadModel = async () => {
-      await tf.ready();
-      const loadedModel = await cocossd.load();
-      setModel(loadedModel);
-      setLoading(false);
-    };
-    loadModel();
-  }, []);
+  const [roboflowPredictions, setRoboflowPredictions] = useState([]);
 
   // Init Camera
   const initCamera = async () => {
@@ -104,65 +98,122 @@ const FireDetection = () => {
 
   useEffect(() => { fetchAlerts(); fetchStats(); }, []);
 
-  // Color-based fire detection
-  const checkForFireWithColor = () => {
-    const video = videoRef.current;
-    if (!video || video.videoWidth === 0) return;
+  // Starts the backend timer that escalates an unmuted alarm to Telegram after 15 seconds.
+  const startAlarmTimer = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/alarm/start-timer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
 
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-    const frame = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    let firePixels = 0;
-
-    for (let i = 0; i < frame.data.length; i += 4) {
-      const r = frame.data[i], g = frame.data[i + 1], b = frame.data[i + 2];
-      if (r > 180 && g < 120 && b < 100 && (r - g) > 80 && (r - b) > 100 && r > (g + b)) {
-        firePixels++;
+      if (!response.ok) {
+        throw new Error(`Alarm timer request failed with status ${response.status}`);
       }
+    } catch (error) {
+      // Timer failures should not interrupt the existing alarm UI or detection loop.
+      console.error('Failed to start alarm timer:', error);
     }
-
-    setFirePixelsCount(firePixels);
-
-    if (firePixels > 50 && !alarmOn) {
-      setAlarmOn(true);
-      if (!muted && alarmRef.current) alarmRef.current.play().catch(()=>{});
-      saveAlertToBackend('Candle Flame (Color Detection)', 'medium');
-    } else if (firePixels > 3000 && !alarmOn) {
-      setAlarmOn(true);
-      if (!muted && alarmRef.current) alarmRef.current.play().catch(()=>{});
-      saveAlertToBackend('Large Fire (Color Detection)', 'critical');
-    } else if (firePixels < 30 && detections.length === 0) setAlarmOn(false);
   };
 
-  // AI detection
-  const checkForFireWithAI = async () => {
-    if (!model || !videoRef.current || videoRef.current.readyState !== 4) return;
+  // Cancels the pending backend timer when the user mutes the local alarm.
+  const muteAlarmTimer = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/alarm/mute', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
 
-    const predictions = await model.detect(videoRef.current);
-    setDetections(predictions);
-    const fireObjects = predictions.filter(p => ['fire','orange','red','bright'].some(c => p.class.toLowerCase().includes(c)));
-
-    if (fireObjects.length > 0 && !alarmOn) {
-      const best = fireObjects[0];
-      setAlarmOn(true);
-      if (!muted && alarmRef.current) alarmRef.current.play().catch(()=>{});
-      saveAlertToBackend(`AI Detected: ${best.class}`, 'high');
-    } else if (fireObjects.length === 0 && firePixelsCount < 30) setAlarmOn(false);
+      if (!response.ok) {
+        throw new Error(`Alarm mute request failed with status ${response.status}`);
+      }
+    } catch (error) {
+      // A mute request failure is logged, but local mute behavior still proceeds.
+      console.error('Failed to mute alarm timer:', error);
+    }
   };
 
-  // Real-time loop
+  // Capture one camera frame, send it to the backend, and process Roboflow predictions.
+  const checkForFireWithRoboflow = async () => {
+    const video = videoRef.current;
+    if (!video || video.readyState !== 4 || roboflowRequestInFlightRef.current) return;
+
+    const canvas = roboflowCanvasRef.current;
+    const context = canvas.getContext('2d');
+    if (!context) return;
+
+    roboflowRequestInFlightRef.current = true;
+
+    try {
+      // Convert the current video frame to JPEG and remove the data URL prefix.
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const base64Image = canvas.toDataURL('image/jpeg').replace(/^data:image\/jpeg;base64,/, '');
+
+      // The backend keeps the Roboflow API key off the client and forwards this JSON payload.
+      const response = await fetch('http://localhost:5000/api/detect-fire', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: base64Image })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Roboflow request failed with status ${response.status}`);
+      }
+
+      const data = await response.json();
+      const predictions = Array.isArray(data.predictions) ? data.predictions : [];
+      setRoboflowPredictions(predictions);
+
+      // Only a confident fire prediction should activate the alarm and create an alert.
+      const firePrediction = predictions.find(
+        (prediction) => prediction.class?.toLowerCase() === 'fire' && prediction.confidence > 0.5
+      );
+
+      if (firePrediction) {
+        // Fire is still present, so cancel any pending 30-second alarm shutdown.
+        if (alarmOffTimerRef.current) {
+          clearTimeout(alarmOffTimerRef.current);
+          alarmOffTimerRef.current = null;
+        }
+
+        // Start the 15-second escalation timer only when this detection becomes active.
+        if (!alarmActiveRef.current) {
+          alarmActiveRef.current = true;
+          startAlarmTimer();
+        }
+        setAlarmOn(true);
+        if (!muted && alarmRef.current) alarmRef.current.play().catch(() => {});
+        saveAlertToBackend(
+          `Roboflow Detected: ${firePrediction.class}`,
+          getSeverity(firePrediction.confidence)
+        );
+      } else {
+        // Do not stop immediately after one missed prediction; wait 30 seconds.
+        if (alarmActiveRef.current && !alarmOffTimerRef.current) {
+          alarmOffTimerRef.current = setTimeout(() => {
+            alarmActiveRef.current = false;
+            alarmOffTimerRef.current = null;
+            setAlarmOn(false);
+          }, 30 * 1000);
+        }
+      }
+    } catch (error) {
+      // A failed inference must not stop future 3-second checks.
+      console.error('Roboflow fire detection failed:', error);
+    } finally {
+      roboflowRequestInFlightRef.current = false;
+    }
+  };
+
+  // Run Roboflow inference every three seconds and clean up on unmount.
   useEffect(() => {
-    if (loading) return;
-    const interval = setInterval(() => { checkForFireWithAI(); checkForFireWithColor(); }, 1000);
+    const interval = setInterval(checkForFireWithRoboflow, 3000);
     return () => clearInterval(interval);
-  }, [model, loading, firePixelsCount]);
+  }, [muted]);
 
   // Camera controls
-  const disconnectCamera = () => { if(stream){stream.getTracks().forEach(t=>t.stop()); setStream(null); if(videoRef.current) videoRef.current.srcObject=null; setAlarmOn(false); setDetections([]);} };
+  const disconnectCamera = () => { if(stream){stream.getTracks().forEach(t=>t.stop()); setStream(null); if(videoRef.current) videoRef.current.srcObject=null; if(alarmOffTimerRef.current) clearTimeout(alarmOffTimerRef.current); alarmOffTimerRef.current = null; setAlarmOn(false); alarmActiveRef.current = false; setRoboflowPredictions([]);} };
   const reconnectCamera = () => { if(!stream) initCamera(); };
 
   // Toggle alert read/unread with backend sync
@@ -189,23 +240,17 @@ const FireDetection = () => {
 
   return (
     <div style={{ textAlign:'center', padding:'20px'}}>
-      <h1>Fire Detection with AI & Color Analysis</h1>
-      {loading && <div>🔄 Loading AI Model...</div>}
+      <h1>Fire Detection with Roboflow Trained Model</h1>
       <div style={{position:'relative', display:'inline-block'}}>
         <video ref={videoRef} width="640" height="480" autoPlay muted style={{border:'2px solid #d32f2f', borderRadius:'8px', marginTop:'20px'}}/>
-        {detections.map((d,i)=>(
-          <div key={i} style={{position:'absolute', left:d.bbox[0], top:d.bbox[1], width:d.bbox[2], height:d.bbox[3], border:'2px solid red', backgroundColor:'rgba(255,0,0,0.1)', color:'white', fontSize:'12px', fontWeight:'bold', pointerEvents:'none'}}>
-            {d.class} ({Math.round(d.score*100)}%)
-          </div>
-        ))}
       </div>
       <audio ref={alarmRef} src={`${process.env.PUBLIC_URL}/alarm.mp3`} loop/>
       <div style={{ marginTop:'15px', padding:'10px', backgroundColor:'#f5f5f5', borderRadius:'8px' }}>
-        🔍 Fire Pixels: {firePixelsCount} | AI Objects: {detections.length}
+        Roboflow Model Predictions: {roboflowPredictions.length}
       </div>
       {alarmOn && <div style={{marginTop:'20px', color:'#d32f2f', fontWeight:'700', fontSize:'1.5rem', padding:'10px', backgroundColor:'#fff5f5', borderRadius:'8px'}}>🔥 Fire Detected! 🔥</div>}
       <div style={{marginTop:'20px', display:'flex', justifyContent:'center', gap:'10px', flexWrap:'wrap'}}>
-        <button onClick={()=>{setMuted(!muted); if(!muted && alarmRef.current){alarmRef.current.pause(); alarmRef.current.currentTime=0;}}} style={{padding:'10px 20px', borderRadius:'8px', border:'none', backgroundColor:muted?'#555':'#d32f2f', color:'white', fontWeight:'600', cursor:'pointer'}}>{muted?'🔊 Unmute Alarm':'🔇 Mute Alarm'}</button>
+        <button onClick={()=>{setMuted(!muted); if(!muted){muteAlarmTimer(); if(alarmRef.current){alarmRef.current.pause(); alarmRef.current.currentTime=0;}}}} style={{padding:'10px 20px', borderRadius:'8px', border:'none', backgroundColor:muted?'#555':'#d32f2f', color:'white', fontWeight:'600', cursor:'pointer'}}>{muted?'🔊 Unmute Alarm':'🔇 Mute Alarm'}</button>
         <button onClick={disconnectCamera} style={{padding:'10px 20px', borderRadius:'8px', border:'none', backgroundColor:'#777', color:'white', fontWeight:'600', cursor:'pointer'}}>📷 Disconnect Camera</button>
         <button onClick={reconnectCamera} style={{padding:'10px 20px', borderRadius:'8px', border:'none', backgroundColor:'#2e7d32', color:'white', fontWeight:'600', cursor:'pointer'}}>🔄 Reconnect Camera</button>
       </div>
