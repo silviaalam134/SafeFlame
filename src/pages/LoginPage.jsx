@@ -27,8 +27,8 @@ const LoginPage = () => {
 
       alert('Login successful');
 
-      // Redirect to profile page instead of homepage
-      navigate('/profile');
+      // Admins use the admin dashboard; regular users keep the existing flow.
+      navigate(data.user.role === 'admin' ? '/admin' : '/dashboard');
     } catch (err) {
       alert(err.message);
     }

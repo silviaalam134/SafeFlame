@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import AlertCard from '../components/AlertCard';
 import './Dashboard.css';
 
@@ -131,6 +132,7 @@ const Dashboard = () => {
       <header className="dashboard__header">
         <h1 className="dashboard__title">Fire Alert Dashboard</h1>
         <p className="dashboard__subtitle">Live list of fire alerts (auto-refreshes)</p>
+        <Link to="/first-aid" className="dashboard__first-aid-link">Burn first-aid help</Link>
       </header>
 
       <div className="dashboard__stats">

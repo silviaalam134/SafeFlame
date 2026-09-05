@@ -67,3 +67,14 @@
   color: #444;
   text-align: center;
 }
+
+.dashboard__first-aid-link {
+  align-self: flex-start;
+  margin-top: 8px;
+  padding: 9px 13px;
+  border-radius: 6px;
+  background: #d32f2f;
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+}

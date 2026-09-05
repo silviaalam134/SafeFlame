@@ -1,0 +1,37 @@
+.first-aid-page {
+  max-width: 1040px;
+  margin: 30px auto 60px;
+  padding: 0 18px;
+  color: #2f2924;
+}
+
+.first-aid-page__header { margin-bottom: 24px; }
+.first-aid-page__eyebrow { margin: 0 0 6px; color: #d32f2f; font-size: .78rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.first-aid-page h1, .first-aid-page h2 { margin: 0; }
+.first-aid-page h1 { font-size: clamp(1.9rem, 4vw, 2.7rem); }
+.first-aid-page__header > p:last-child, .first-aid-page__section-heading p { margin: 7px 0 0; color: #776f68; }
+.first-aid-page__faq-section, .first-aid-page__ai-section { padding: 20px; border: 1px solid #eadfce; border-radius: 8px; background: #fffdf9; box-shadow: 0 5px 16px rgba(75, 48, 27, .05); }
+.first-aid-page__ai-section { margin-top: 18px; }
+.first-aid-page__section-heading { margin-bottom: 18px; }
+.first-aid-page__faq-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.first-aid-page__faq-card { border: 1px solid #eadfce; border-radius: 7px; background: #fff; }
+.first-aid-page__faq-card.is-selected { border-color: #d32f2f; }
+.first-aid-page__faq-card button { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 12px; border: 0; background: transparent; padding: 15px; color: #382f29; font-weight: 800; text-align: left; cursor: pointer; }
+.first-aid-page__faq-card button span:last-child { color: #d32f2f; font-size: 1.2rem; }
+.first-aid-page__faq-card p { margin: 0; padding: 0 15px 16px; color: #665c54; line-height: 1.55; }
+.first-aid-page__ask-form label { display: block; margin-bottom: 7px; color: #665c54; font-size: .86rem; font-weight: 700; }
+.first-aid-page__input-row { display: flex; gap: 9px; }
+.first-aid-page__input-row input { min-width: 0; flex: 1; border: 1px solid #d9cfc4; border-radius: 6px; padding: 12px; color: #2f2924; font: inherit; }
+.first-aid-page__input-row button { border: 0; border-radius: 6px; padding: 0 20px; background: #d32f2f; color: #fff; font-weight: 800; cursor: pointer; }
+.first-aid-page__input-row button:disabled { cursor: not-allowed; opacity: .55; }
+.first-aid-page__chat-bubble { max-width: 760px; margin-top: 18px; padding: 15px 17px; border-left: 4px solid #2e7d32; border-radius: 7px; background: #eef7ef; line-height: 1.6; white-space: pre-wrap; }
+.first-aid-page__chat-bubble p { margin: 0; }
+.first-aid-page__chat-bubble small { display: block; margin-top: 12px; color: #526353; font-size: .78rem; line-height: 1.45; }
+.first-aid-page__chat-bubble.is-loading { border-left-color: #d32f2f; color: #776f68; }
+.first-aid-page__error { margin-top: 18px; padding: 12px; border-radius: 6px; background: #ffebee; color: #a62828; }
+
+@media (max-width: 680px) {
+  .first-aid-page__faq-grid { grid-template-columns: 1fr; }
+  .first-aid-page__input-row { flex-direction: column; }
+  .first-aid-page__input-row button { min-height: 42px; }
+}

@@ -10,19 +10,33 @@ const getSeverity = (confidence) => {
 
 const FireDetection = () => {
   const videoRef = useRef(null);
+  // Keeps one audio instance across renders and detection cycles.
   const alarmRef = useRef(null);
   const roboflowCanvasRef = useRef(document.createElement('canvas'));
   const lastAlertTimeRef = useRef(0); // Prevent duplicate alerts within 3 seconds
   const roboflowRequestInFlightRef = useRef(false); // Prevent overlapping inference requests
-  const alarmActiveRef = useRef(false); // Tracks the fire alarm transition without changing detection logic
-  const alarmOffTimerRef = useRef(null); // Keeps the alarm active for 30 seconds after the last fire prediction
+  const fireStartTimeRef = useRef(null); // Timestamp for the current uninterrupted fire episode
+  const telegramSentRef = useRef(false); // Prevents repeated Telegram alerts during one episode
 
   const [alarmOn, setAlarmOn] = useState(false);
-  const [muted, setMuted] = useState(false);
   const [stream, setStream] = useState(null);
   const [alerts, setAlerts] = useState([]);
   const [stats, setStats] = useState({ totalAlerts: 0, unreadAlerts: 0, resolvedAlerts: 0 });
   const [roboflowPredictions, setRoboflowPredictions] = useState([]);
+
+  // Create the alarm once so the short sound can loop independently of React renders.
+  useEffect(() => {
+    const alarm = new Audio(`${process.env.PUBLIC_URL}/alarm.mp3`);
+    alarm.loop = true;
+    alarm.preload = 'auto';
+    alarmRef.current = alarm;
+
+    return () => {
+      alarm.pause();
+      alarm.currentTime = 0;
+      alarmRef.current = null;
+    };
+  }, []);
 
   // Init Camera
   const initCamera = async () => {
@@ -98,37 +112,20 @@ const FireDetection = () => {
 
   useEffect(() => { fetchAlerts(); fetchStats(); }, []);
 
-  // Starts the backend timer that escalates an unmuted alarm to Telegram after 15 seconds.
-  const startAlarmTimer = async () => {
+  // Notify the backend once a fire episode has lasted at least 15 uninterrupted seconds.
+  const notifyTelegram = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/alarm/start-timer', {
+      const response = await fetch('http://localhost:5000/api/alarm/notify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
       });
 
       if (!response.ok) {
-        throw new Error(`Alarm timer request failed with status ${response.status}`);
+        throw new Error(`Telegram notification failed with status ${response.status}`);
       }
     } catch (error) {
-      // Timer failures should not interrupt the existing alarm UI or detection loop.
-      console.error('Failed to start alarm timer:', error);
-    }
-  };
-
-  // Cancels the pending backend timer when the user mutes the local alarm.
-  const muteAlarmTimer = async () => {
-    try {
-      const response = await fetch('http://localhost:5000/api/alarm/mute', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      });
-
-      if (!response.ok) {
-        throw new Error(`Alarm mute request failed with status ${response.status}`);
-      }
-    } catch (error) {
-      // A mute request failure is logged, but local mute behavior still proceeds.
-      console.error('Failed to mute alarm timer:', error);
+      // Notification failures must not interrupt future Roboflow checks.
+      console.error('Failed to send Telegram notification:', error);
     }
   };
 
@@ -171,31 +168,36 @@ const FireDetection = () => {
       );
 
       if (firePrediction) {
-        // Fire is still present, so cancel any pending 30-second alarm shutdown.
-        if (alarmOffTimerRef.current) {
-          clearTimeout(alarmOffTimerRef.current);
-          alarmOffTimerRef.current = null;
+        // Start the continuous episode clock only on the first fire detection.
+        if (fireStartTimeRef.current === null) {
+          fireStartTimeRef.current = Date.now();
+          telegramSentRef.current = false;
         }
 
-        // Start the 15-second escalation timer only when this detection becomes active.
-        if (!alarmActiveRef.current) {
-          alarmActiveRef.current = true;
-          startAlarmTimer();
+        // Escalate once after 15 seconds, without delaying or blocking detection.
+        if (!telegramSentRef.current && Date.now() - fireStartTimeRef.current >= 15000) {
+          telegramSentRef.current = true;
+          notifyTelegram();
         }
+
         setAlarmOn(true);
-        if (!muted && alarmRef.current) alarmRef.current.play().catch(() => {});
+        // Start the alarm only if it is not already playing. Replaying on every
+        // detection cycle would restart this short sound and cause glitches.
+        if (alarmRef.current && alarmRef.current.paused !== false) {
+          alarmRef.current.play().catch(() => {});
+        }
         saveAlertToBackend(
           `Roboflow Detected: ${firePrediction.class}`,
           getSeverity(firePrediction.confidence)
         );
       } else {
-        // Do not stop immediately after one missed prediction; wait 30 seconds.
-        if (alarmActiveRef.current && !alarmOffTimerRef.current) {
-          alarmOffTimerRef.current = setTimeout(() => {
-            alarmActiveRef.current = false;
-            alarmOffTimerRef.current = null;
-            setAlarmOn(false);
-          }, 30 * 1000);
+        // A missed fire detection ends the episode and stops the alarm immediately.
+        fireStartTimeRef.current = null;
+        telegramSentRef.current = false;
+        setAlarmOn(false);
+        if (alarmRef.current) {
+          alarmRef.current.pause();
+          alarmRef.current.currentTime = 0;
         }
       }
     } catch (error) {
@@ -209,11 +211,19 @@ const FireDetection = () => {
   // Run Roboflow inference every three seconds and clean up on unmount.
   useEffect(() => {
     const interval = setInterval(checkForFireWithRoboflow, 3000);
-    return () => clearInterval(interval);
-  }, [muted]);
+    return () => {
+      clearInterval(interval);
+      fireStartTimeRef.current = null;
+      telegramSentRef.current = false;
+      if (alarmRef.current) {
+        alarmRef.current.pause();
+        alarmRef.current.currentTime = 0;
+      }
+    };
+  }, []);
 
   // Camera controls
-  const disconnectCamera = () => { if(stream){stream.getTracks().forEach(t=>t.stop()); setStream(null); if(videoRef.current) videoRef.current.srcObject=null; if(alarmOffTimerRef.current) clearTimeout(alarmOffTimerRef.current); alarmOffTimerRef.current = null; setAlarmOn(false); alarmActiveRef.current = false; setRoboflowPredictions([]);} };
+  const disconnectCamera = () => { if(stream){stream.getTracks().forEach(t=>t.stop()); setStream(null); if(videoRef.current) videoRef.current.srcObject=null; fireStartTimeRef.current = null; telegramSentRef.current = false; if(alarmRef.current){alarmRef.current.pause(); alarmRef.current.currentTime = 0;} setAlarmOn(false); setRoboflowPredictions([]);} };
   const reconnectCamera = () => { if(!stream) initCamera(); };
 
   // Toggle alert read/unread with backend sync
@@ -244,13 +254,11 @@ const FireDetection = () => {
       <div style={{position:'relative', display:'inline-block'}}>
         <video ref={videoRef} width="640" height="480" autoPlay muted style={{border:'2px solid #d32f2f', borderRadius:'8px', marginTop:'20px'}}/>
       </div>
-      <audio ref={alarmRef} src={`${process.env.PUBLIC_URL}/alarm.mp3`} loop/>
       <div style={{ marginTop:'15px', padding:'10px', backgroundColor:'#f5f5f5', borderRadius:'8px' }}>
         Roboflow Model Predictions: {roboflowPredictions.length}
       </div>
       {alarmOn && <div style={{marginTop:'20px', color:'#d32f2f', fontWeight:'700', fontSize:'1.5rem', padding:'10px', backgroundColor:'#fff5f5', borderRadius:'8px'}}>🔥 Fire Detected! 🔥</div>}
       <div style={{marginTop:'20px', display:'flex', justifyContent:'center', gap:'10px', flexWrap:'wrap'}}>
-        <button onClick={()=>{setMuted(!muted); if(!muted){muteAlarmTimer(); if(alarmRef.current){alarmRef.current.pause(); alarmRef.current.currentTime=0;}}}} style={{padding:'10px 20px', borderRadius:'8px', border:'none', backgroundColor:muted?'#555':'#d32f2f', color:'white', fontWeight:'600', cursor:'pointer'}}>{muted?'🔊 Unmute Alarm':'🔇 Mute Alarm'}</button>
         <button onClick={disconnectCamera} style={{padding:'10px 20px', borderRadius:'8px', border:'none', backgroundColor:'#777', color:'white', fontWeight:'600', cursor:'pointer'}}>📷 Disconnect Camera</button>
         <button onClick={reconnectCamera} style={{padding:'10px 20px', borderRadius:'8px', border:'none', backgroundColor:'#2e7d32', color:'white', fontWeight:'600', cursor:'pointer'}}>🔄 Reconnect Camera</button>
       </div>

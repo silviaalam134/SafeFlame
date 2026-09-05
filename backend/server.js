@@ -4,7 +4,9 @@ try {
   delete require.cache[require.resolve('./routes/auth')];
   delete require.cache[require.resolve('./routes/alerts')];
   delete require.cache[require.resolve('./routes/detectFire')];
-  delete require.cache[require.resolve('./routes/alarmTimer')];
+  delete require.cache[require.resolve('./routes/telegramAlert')];
+  delete require.cache[require.resolve('./routes/admin')];
+  delete require.cache[require.resolve('./routes/chatbot')];
   console.log('🔄 MODULE CACHE CLEARED');
 } catch (err) {
   console.log('⚠️ Module cache clear warning:', err.message);
@@ -74,13 +76,31 @@ try {
   console.log('❌ Failed to load Roboflow detection route:', error.message);
 }
 
-// 🔹 LOAD TELEGRAM ALARM ESCALATION ROUTE
+// 🔹 LOAD TELEGRAM ALARM NOTIFICATION ROUTE
 try {
-  const alarmTimerRoutes = require('./routes/alarmTimer');
-  app.use('/api/alarm', alarmTimerRoutes);
-  console.log('✅ Alarm timer route loaded successfully');
+  const telegramAlertRoutes = require('./routes/telegramAlert');
+  app.use('/api/alarm', telegramAlertRoutes);
+  console.log('✅ Telegram alert route loaded successfully');
 } catch (error) {
-  console.log('❌ Failed to load alarm timer route:', error.message);
+  console.log('❌ Failed to load Telegram alert route:', error.message);
+}
+
+// 🔹 LOAD ADMIN ROUTES
+try {
+  const adminRoutes = require('./routes/admin');
+  app.use('/api/admin', adminRoutes);
+  console.log('✅ Admin routes loaded successfully');
+} catch (error) {
+  console.log('❌ Failed to load admin routes:', error.message);
+}
+
+// 🔹 LOAD BURN FIRST-AID CHATBOT ROUTES
+try {
+  const chatbotRoutes = require('./routes/chatbot');
+  app.use('/api/chatbot', chatbotRoutes);
+  console.log('✅ Chatbot routes loaded successfully');
+} catch (error) {
+  console.log('❌ Failed to load chatbot routes:', error.message);
 }
 
 // 🔹 START SERVER

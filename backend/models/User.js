@@ -6,7 +6,10 @@ const UserSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true, lowercase: true, trim: true },
   password: { type: String, required: true, minlength: 6 },
   address: { type: String, default: '' },
-  phone: { type: String, default: '' }
+  phone: { type: String, default: '' },
+  telegramChatId: { type: String, default: '' },
+  role: { type: String, enum: ['user', 'admin'], default: 'user' },
+  isActive: { type: Boolean, default: true }
 }, { timestamps: true });
 
 // Hash password before saving

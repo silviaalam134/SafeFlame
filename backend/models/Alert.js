@@ -13,7 +13,7 @@ const AlertSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['unread', 'read'],
+    enum: ['unread', 'read', 'resolved'],
     default: 'unread'
   },
   location: {

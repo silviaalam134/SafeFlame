@@ -1,28 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const Alert = require('../models/Alert');
-const jwt = require('jsonwebtoken');
-require('dotenv').config();
+const authMiddleware = require('../middleware/auth');
+const isUser = require('../middleware/isUser');
 
-// Middleware to verify JWT token
-const authMiddleware = (req, res, next) => {
-  const authHeader = req.headers.authorization; // "Bearer TOKEN"
-  if (!authHeader) return res.status(401).json({ message: 'No token provided' });
-
-  const token = authHeader.split(' ')[1];
-  if (!token) return res.status(401).json({ message: 'Malformed token' });
-
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.userId = decoded.id;
-    next();
-  } catch (err) {
-    return res.status(401).json({ message: 'Invalid or expired token' });
-  }
-};
+// Admin accounts use the separate admin APIs instead of personal alert APIs.
+router.use(authMiddleware, isUser);
 
 // GET all alerts
-router.get('/', authMiddleware, async (req, res) => {
+router.get('/', async (req, res) => {
   try {
     const alerts = await Alert.find({ userId: req.userId }).sort({ createdAt: -1 });
     res.json(alerts);
@@ -32,7 +18,7 @@ router.get('/', authMiddleware, async (req, res) => {
 });
 
 // POST create new alert
-router.post('/', authMiddleware, async (req, res) => {
+router.post('/', async (req, res) => {
   const { type, status = 'unread', location = 'Camera Feed', severity = 'high', detectedBy = '' } = req.body;
   try {
     const newAlert = await Alert.create({
@@ -50,7 +36,7 @@ router.post('/', authMiddleware, async (req, res) => {
 });
 
 // PATCH alert status (mark as read/unread)
-router.patch('/:id', authMiddleware, async (req, res) => {
+router.patch('/:id', async (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
   if (!['unread', 'read'].includes(status)) return res.status(400).json({ message: 'Invalid status' });
@@ -69,7 +55,7 @@ router.patch('/:id', authMiddleware, async (req, res) => {
 });
 
 // GET alert statistics
-router.get('/stats', authMiddleware, async (req, res) => {
+router.get('/stats', async (req, res) => {
   try {
     const total = await Alert.countDocuments({ userId: req.userId });
     const unread = await Alert.countDocuments({ userId: req.userId, status: 'unread' });
