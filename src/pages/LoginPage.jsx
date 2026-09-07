@@ -36,6 +36,7 @@ const LoginPage = () => {
 
   return (
     <div className="login-page">
+      <img className="auth-page__image" src={`${process.env.PUBLIC_URL}/fire-background.jpg`} alt="" aria-hidden="true" />
       <div className="login-card">
         <h2>Welcome Back</h2>
         <p className="login-subtitle">Login to your account</p>

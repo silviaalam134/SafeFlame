@@ -1,16 +1,17 @@
 /* Footer.css */
 
 .homepage__footer {
-  padding: 20px 32px;
+  padding: 16px 24px;
   text-align: center;
-  background: #d32f2f;
+  background: #9d481b;
   color: white;
-  font-weight: 500;
+  font-size: 0.92rem;
+  font-weight: 600;
 }
 
 .homepage__footer--landing {
   padding: 0 40px;
-  background: #191919;
+  background: #9d481b;
   color: #fff;
   text-align: left;
 }
@@ -34,7 +35,7 @@
 
 .homepage__footer-mark {
   margin-bottom: 13px;
-  color: #ef5d38;
+  color: #ffd0a8;
   font-size: 1.1rem;
 }
 
@@ -48,7 +49,7 @@
 .homepage__footer-newsletter p {
   max-width: 230px;
   margin: 0 0 16px;
-  color: #aaa29c;
+  color: #f2d1bb;
   font-size: 0.76rem;
   line-height: 1.5;
 }
@@ -57,7 +58,7 @@
 .homepage__footer-column a,
 .homepage__footer-bottom a {
   margin-bottom: 9px;
-  color: #f4f1ed;
+  color: #fff8f2;
   font-size: 0.76rem;
   text-decoration: none;
 }
@@ -71,7 +72,7 @@
 .homepage__footer-brand a:hover,
 .homepage__footer-column a:hover,
 .homepage__footer-bottom a:hover {
-  color: #ff9a70;
+  color: #ffd0a8;
 }
 
 .homepage__footer-subscribe {
@@ -81,9 +82,9 @@
   justify-content: space-between;
   gap: 8px;
   padding: 3px 4px 3px 12px;
-  border: 1px solid #3c3c3c;
+  border: 1px solid rgba(255, 248, 242, 0.45);
   border-radius: 20px;
-  color: #8f8984;
+  color: #f2d1bb;
   font-size: 0.72rem;
 }
 
@@ -103,8 +104,8 @@
   justify-content: space-between;
   margin-top: 22px;
   padding-top: 17px;
-  border-top: 1px solid #333;
-  color: #c1bbb5;
+  border-top: 1px solid rgba(255, 248, 242, 0.28);
+  color: #f2d1bb;
   font-size: 0.68rem;
 }
 

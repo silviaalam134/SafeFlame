@@ -43,6 +43,7 @@ const RegisterPage = () => {
 
   return (
     <div className="register-container">
+      <img className="auth-page__image" src={`${process.env.PUBLIC_URL}/fire-background.jpg`} alt="" aria-hidden="true" />
       <h1>Register</h1>
       {error && <div className="register-error">{error}</div>}
       <form onSubmit={handleRegister} className="register-form">

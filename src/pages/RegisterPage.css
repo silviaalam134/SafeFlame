@@ -137,3 +137,110 @@ body {
     padding: 10px;
   }
 }
+
+/* Keep registration visually consistent with the sign-in page. */
+.register-container {
+  position: relative;
+  display: flex;
+  width: 100%;
+  min-height: calc(100svh - 80px);
+  flex-direction: column;
+  justify-content: flex-start;
+  max-width: none !important;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: #fffdf9;
+  isolation: isolate;
+}
+
+.register-container > *:not(.auth-page__image) {
+  position: relative;
+  z-index: 1;
+  width: 50%;
+  max-width: none;
+  margin-right: 0;
+  margin-left: 0;
+  padding-right: clamp(28px, 7vw, 110px);
+  padding-left: clamp(28px, 7vw, 110px);
+}
+
+.register-container > h1,
+.register-container > .register-form,
+.register-container > p,
+.register-container > .back-home-btn,
+.register-container > .register-error {
+  text-align: center;
+}
+
+.register-container h1 {
+  margin-bottom: 20px;
+  padding-top: clamp(42px, 7vw, 92px);
+  border-radius: 0;
+  background: #fffdf9;
+}
+
+.register-container > .register-form,
+.register-container > p,
+.register-container > .back-home-btn,
+.register-container > .register-error {
+  padding-right: clamp(28px, 7vw, 110px);
+  padding-left: clamp(28px, 7vw, 110px);
+  background: rgba(255, 253, 249, 0.96);
+}
+
+.register-container > .register-form {
+  padding-top: 4px;
+}
+
+.register-container > p:last-of-type {
+  margin: 0;
+  padding-top: 8px;
+  padding-bottom: 14px;
+}
+
+.register-container > .back-home-btn {
+  margin-top: 0;
+  padding-top: 12px;
+  padding-bottom: 42px;
+  border-radius: 0;
+}
+
+@media (max-width: 480px) {
+  .register-container {
+    min-height: calc(100svh - 116px);
+    padding: 0;
+  }
+}
+
+@media (max-width: 760px) {
+  .register-container {
+    display: block;
+  }
+
+  .register-container .auth-page__image {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 220px;
+  }
+
+  .register-container > *:not(.auth-page__image) {
+    width: 100%;
+    padding-right: 22px;
+    padding-left: 22px;
+  }
+
+  .register-container h1 {
+    padding-top: 38px;
+  }
+
+  .register-container > .back-home-btn {
+    padding-bottom: 44px;
+  }
+}
+
+/* Keep the auth page flush beneath the shared navbar. */
+body {
+  padding: 0;
+}

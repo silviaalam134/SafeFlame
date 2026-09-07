@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import Dashboard from './Dashboard';
 import { FirstAidAskSection } from './FirstAidChatbot';
 import './Homepage.css';
@@ -14,6 +14,25 @@ const awarenessTaglines = [
   'একটি  নিরাপদ ভবিষ্যতের  জন্য  আগুন  সম্পর্কে  সচেতন  হোন।',
 ];
 
+const commonQuestions = [
+  {
+    question: 'How often should I test my smoke alarms?',
+    answer: 'Test your smoke alarms at least once a month and replace the batteries twice a year. Replace the alarms themselves every ten years.'
+  },
+  {
+    question: 'What should I do when a fire starts?',
+    answer: 'Raise the alarm, leave immediately using the safest exit, stay low if there is smoke, and call the emergency service from a safe location.'
+  },
+  {
+    question: 'Do you offer fire-safety guidance for businesses?',
+    answer: 'Yes. SafeFlame provides practical guidance for prevention, evacuation planning, fire detection, and emergency readiness in workplaces.'
+  },
+  {
+    question: 'Is fire-safety preparation really necessary?',
+    answer: 'Yes. Fires can spread quickly, and preparation helps people respond calmly, find safe exits, and reduce risk before an emergency happens.'
+  }
+];
+
 const Homepage = () => {
   const [stats, setStats] = useState({
     totalAlerts: 0,
@@ -21,6 +40,8 @@ const Homepage = () => {
     resolvedAlerts: 0,
   });
   const [activeTagline, setActiveTagline] = useState(0);
+  const [openQuestion, setOpenQuestion] = useState(0);
+  const location = useLocation();
 
   const token = localStorage.getItem('token');
 
@@ -48,10 +69,21 @@ const Homepage = () => {
   useEffect(() => {
     const taglineInterval = setInterval(() => {
       setActiveTagline((currentTagline) => (currentTagline + 1) % awarenessTaglines.length);
-    }, 5000);
+    }, 3000);
 
     return () => clearInterval(taglineInterval);
   }, []);
+
+  useEffect(() => {
+    if (!location.hash) return undefined;
+
+    const sectionId = decodeURIComponent(location.hash.slice(1));
+    const scrollToSection = window.setTimeout(() => {
+      document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 0);
+
+    return () => window.clearTimeout(scrollToSection);
+  }, [location.hash]);
 
   return (
     <div className="homepage">
@@ -66,7 +98,7 @@ const Homepage = () => {
         <div className="homepage__hero-content">
           <p className="homepage__eyebrow">FIRE SAFETY AWARENESS</p>
           <h1>Protect what matters most from fire.</h1>
-          <p>Monitor fire alerts in real time and make safer decisions for your home, workplace, and community.</p>
+          <p>Monitor fire alerts in real time and make safer decisions for your home, workplace and community.</p>
         </div>
         <Link
           to="/fire-detection"
@@ -83,7 +115,11 @@ const Homepage = () => {
             <p key={activeTagline} className="homepage__awareness-tagline" aria-live="polite">
               “
               {awarenessTaglines[activeTagline].split(' ').map((word, wordIndex) => (
-                <span className="homepage__awareness-word" key={`${word}-${wordIndex}`}>
+                <span
+                  className="homepage__awareness-word"
+                  key={`${word}-${wordIndex}`}
+                  style={{ '--word-delay': `${wordIndex * 70}ms` }}
+                >
                   {word}{wordIndex < awarenessTaglines[activeTagline].split(' ').length - 1 ? ' ' : ''}
                 </span>
               ))}
@@ -103,37 +139,38 @@ const Homepage = () => {
         </div>
       </section>
 
-      {/* Alerts Section */}
-      <section className="homepage__alerts" id="alerts">
-        <p className="homepage__eyebrow">STAY INFORMED</p>
-        <h2>Fire alerts at a glance</h2>
-        {token ? <Dashboard /> : <p>Please login to see your previous fire alerts history.</p>}
-      </section>
+      {/* Alerts and Statistics Sections */}
+      <div className="homepage__alerts-stats">
+        <section className="homepage__alerts" id="alerts">
+          <p className="homepage__eyebrow">STAY INFORMED</p>
+          <h2>Fire alerts at a glance</h2>
+          {token ? <Dashboard /> : <p>Please login to see your previous fire alerts history.</p>}
+        </section>
 
-      {/* Statistics Section */}
-      <section className="homepage__stats" id="stats">
-        <p className="homepage__eyebrow">WHY PREVENTION MATTERS</p>
-        <h2>Safety in numbers</h2>
-        <p className="homepage__section-intro">Every alert is a chance to respond earlier, prepare better, and protect more people.</p>
-        {token ? (
-          <div className="homepage__stats-grid">
-            <div className="homepage__stat-card">
-              <h3>Total Alerts</h3>
-              <p>{stats.totalAlerts}</p>
+        <section className="homepage__stats" id="stats">
+          <p className="homepage__eyebrow">WHY PREVENTION MATTERS</p>
+          <h2>Safety in numbers</h2>
+          <p className="homepage__section-intro">Every alert is a chance to respond earlier, prepare better, and protect more people.</p>
+          {token ? (
+            <div className="homepage__stats-grid">
+              <div className="homepage__stat-card">
+                <h3>Total Alerts</h3>
+                <p>{stats.totalAlerts}</p>
+              </div>
+              <div className="homepage__stat-card">
+                <h3>Unread Alerts</h3>
+                <p>{stats.unreadAlerts}</p>
+              </div>
+              <div className="homepage__stat-card">
+                <h3>Resolved Alerts</h3>
+                <p>{stats.resolvedAlerts}</p>
+              </div>
             </div>
-            <div className="homepage__stat-card">
-              <h3>Unread Alerts</h3>
-              <p>{stats.unreadAlerts}</p>
-            </div>
-            <div className="homepage__stat-card">
-              <h3>Resolved Alerts</h3>
-              <p>{stats.resolvedAlerts}</p>
-            </div>
-          </div>
-        ) : (
-          <p>Please login to view your alert statistics.</p>
-        )}
-      </section>
+          ) : (
+            <p>Please login to view your alert statistics.</p>
+          )}
+        </section>
+      </div>
 
       {/* About Section */}
       <section className="homepage__about" id="about">
@@ -199,6 +236,32 @@ const Homepage = () => {
           <a href="#!" onClick={(e) => e.preventDefault()}>Twitter</a>
           <a href="#!" onClick={(e) => e.preventDefault()}>LinkedIn</a>
         </div>
+      </section>
+
+      <section className="homepage__faq" aria-labelledby="homepage-faq-heading">
+        <p className="homepage__eyebrow">GOOD TO KNOW</p>
+          <h2 id="homepage-faq-heading">Common questions</h2>
+          <p className="homepage__faq-intro">Answers to the questions we hear most often about fire safety and emergency preparation.</p>
+          <div className="homepage__faq-list">
+            {commonQuestions.map((item, index) => (
+              <article className={`homepage__faq-item ${openQuestion === index ? 'is-open' : ''}`} key={item.question}>
+                <button
+                  type="button"
+                  aria-expanded={openQuestion === index}
+                  onClick={() => setOpenQuestion(openQuestion === index ? null : index)}
+                >
+                  <span>{item.question}</span>
+                  <span aria-hidden="true">{openQuestion === index ? '⌃' : '⌄'}</span>
+                </button>
+                {openQuestion === index && <p>{item.answer}</p>}
+              </article>
+            ))}
+          </div>
+          <div className="homepage__faq-cta">
+            <h3>Still have questions?</h3>
+            <p>We are happy to help with anything else. Reach out to SafeFlame.</p>
+            <a href="#contact">Contact us</a>
+          </div>
       </section>
     </div>
   );

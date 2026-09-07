@@ -137,3 +137,170 @@ body {
     padding: 10px;
   }
 }
+
+/* Fire-safety video backdrop and centered sign-in card */
+.login-page {
+  position: relative;
+  display: flex;
+  width: 100%;
+  min-height: calc(100svh - 80px);
+  align-items: center;
+  justify-content: flex-start;
+  max-width: none !important;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: #fffdf9;
+  isolation: isolate;
+}
+
+.login-page::before,
+.register-container::before {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 50%;
+  z-index: -1;
+  background: rgba(25, 35, 34, 0.2);
+  content: "";
+}
+
+.auth-page__image {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 0;
+  width: 50% !important;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  filter: brightness(0.78) saturate(0.9);
+}
+
+.login-page .login-card,
+.register-container {
+  position: relative;
+  z-index: 1;
+  width: 50%;
+  min-height: 100%;
+  margin: 0;
+  padding: clamp(42px, 7vw, 92px) clamp(28px, 7vw, 110px);
+  border: 0;
+  border-radius: 0;
+  background: #fffdf9;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.login-page .login-card {
+  flex: 0 0 50%;
+  width: 50%;
+  max-width: none;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.login-page .login-card h2,
+.register-container h1 {
+  color: #7f351b;
+  font-size: clamp(1.8rem, 4vw, 2.3rem);
+}
+
+.login-page .login-card input,
+.register-container .register-form input {
+  background: #fff;
+  border-color: #e2c9b9;
+}
+
+.login-page .login-card button,
+.register-container .register-form button {
+  background: #9d481b;
+}
+
+.login-page .login-card button:hover,
+.register-container .register-form button:hover {
+  background: #7f351b;
+}
+
+.login-page .back-home-btn,
+.register-container .back-home-btn {
+  background: #5b6864;
+}
+
+.login-page .back-home-btn:hover,
+.register-container .back-home-btn:hover {
+  background: #3f4b48;
+}
+
+@media (max-width: 480px) {
+  .login-page {
+    min-height: calc(100svh - 116px);
+    padding: 0;
+  }
+}
+
+@media (max-width: 760px) {
+  .login-page {
+    display: block;
+  }
+
+  .login-page::before,
+  .register-container::before {
+    top: 0;
+    right: 0;
+    bottom: auto;
+    left: 0;
+    height: 220px;
+  }
+
+  .login-page .auth-page__image {
+    position: relative;
+    display: block;
+    width: 100% !important;
+    height: 220px;
+  }
+
+  .login-page .login-card {
+    flex-basis: auto;
+    width: 100%;
+    min-height: auto;
+    padding: 38px 22px 44px;
+  }
+}
+
+/* Keep the auth page flush beneath the shared navbar. */
+body {
+  padding: 0;
+}
+
+main:has(> .login-page) {
+  margin: 0;
+  padding: 0;
+  min-height: calc(100svh - 56px);
+}
+
+.login-page {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  height: calc(100svh - 56px);
+  min-height: 0;
+}
+
+.login-page .login-card,
+.login-page .auth-page__image {
+  height: 100%;
+}
+
+@media (max-width: 760px) {
+  .login-page {
+    height: auto;
+    min-height: calc(100svh - 116px);
+  }
+
+  .login-page .login-card {
+    height: auto;
+  }
+}

@@ -5,7 +5,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 16px 32px;
-  background: #d32f2f;
+  background: #9d481b;
   color: white;
   position: sticky;
   top: 0;
@@ -51,7 +51,7 @@
 }
 
 .homepage__nav button:hover {
-  background-color: #2c7a2c;
+  background-color: #7d3513;
 }
 
 @media (max-width: 760px) {

@@ -36,10 +36,10 @@ const Header = () => {
         ) : (
           <>
             <Link to="/">Home</Link>
-            <a href="#alerts">Alerts</a>
-            <a href="#stats">Statistics</a>
-            <a href="#about">About</a>
-            <a href="#contact">Contact</a>
+            <Link to="/#alerts">Alerts</Link>
+            <Link to="/#stats">Statistics</Link>
+            <Link to="/#about">About</Link>
+            <Link to="/#contact">Contact</Link>
             <Link to="/fire-detection">Fire Detection</Link>
             <Link to="/dashboard">Dashboard</Link>
             <Link to="/first-aid">First Aid</Link>
