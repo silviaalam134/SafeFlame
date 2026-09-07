@@ -50,3 +50,22 @@
   .admin-dashboard__filters { width: 100%; }
   .admin-dashboard select { flex: 1; }
 }
+
+@media (max-width: 480px) {
+  .admin-dashboard {
+    margin-top: 20px;
+    padding: 0 12px;
+  }
+
+  .admin-dashboard__summary {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-dashboard__panel {
+    padding: 14px;
+  }
+
+  .admin-dashboard__chart {
+    height: 210px;
+  }
+}

@@ -62,6 +62,8 @@
 /* Responsive */
 @media (max-width: 600px) {
   .alert-page {
+    width: calc(100% - 28px);
+    margin: 28px auto;
     padding: 15px;
   }
 

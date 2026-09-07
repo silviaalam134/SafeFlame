@@ -64,3 +64,15 @@
   font-size: 0.85rem;
   color: rgba(0,0,0,0.6);
 }
+
+@media (max-width: 420px) {
+  .alert-card {
+    padding: 11px 12px;
+  }
+
+  .alert-card__meta {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+}

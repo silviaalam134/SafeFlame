@@ -53,3 +53,37 @@
 .homepage__nav button:hover {
   background-color: #2c7a2c;
 }
+
+@media (max-width: 760px) {
+  .homepage__header {
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 18px;
+  }
+
+  .homepage__logo {
+    font-size: 1.3rem;
+  }
+
+  .homepage__nav {
+    width: 100%;
+    justify-content: flex-start;
+    gap: 10px 14px;
+  }
+
+  .homepage__nav a,
+  .homepage__nav button {
+    font-size: 0.86rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .homepage__nav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .homepage__nav > div {
+    grid-column: 1 / -1;
+  }
+}

@@ -78,3 +78,19 @@
   font-weight: 700;
   text-decoration: none;
 }
+
+@media (max-width: 480px) {
+  .dashboard {
+    margin-top: 18px;
+    padding: 0 12px;
+  }
+
+  .dashboard__title {
+    font-size: 1.35rem;
+  }
+
+  .dashboard__stats {
+    display: grid;
+    gap: 6px;
+  }
+}

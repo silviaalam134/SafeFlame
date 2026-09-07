@@ -39,3 +39,15 @@
 .logout-btn:hover {
   background-color: #660000;
 }
+
+@media (max-width: 560px) {
+  .profile-container {
+    width: calc(100% - 28px);
+    margin: 48px auto;
+    padding: 24px 18px;
+  }
+
+  .profile-card {
+    padding: 16px;
+  }
+}

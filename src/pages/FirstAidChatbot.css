@@ -31,6 +31,17 @@
 .first-aid-page__error { margin-top: 18px; padding: 12px; border-radius: 6px; background: #ffebee; color: #a62828; }
 
 @media (max-width: 680px) {
+  .first-aid-page {
+    width: 100%;
+    margin: 22px auto 42px;
+    padding: 0 14px;
+  }
+
+  .first-aid-page__faq-section,
+  .first-aid-page__ai-section {
+    padding: 16px;
+  }
+
   .first-aid-page__faq-grid { grid-template-columns: 1fr; }
   .first-aid-page__input-row { flex-direction: column; }
   .first-aid-page__input-row button { min-height: 42px; }
